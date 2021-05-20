@@ -121,7 +121,6 @@ describe('', () => {
   it('adjust elevations', () => {
     let grid = new TerrainGrid()
     let model = grid.adjustElevations(examples.modelTwo)
-    console.log(model)
     expect(model).toEqual({
       0: { label: 'item0m', distance: 0, elevations: [ 10, 20 ] },
       10: { label: 'item10m', distance: 10, elevations: [ 20, 30 ] }
