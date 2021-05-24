@@ -1,0 +1,19 @@
+{
+  "name": "queue-rabbitmq",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "./unit-test.sh",
+    "run": "node index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "jest": "^26.6.3"
+  },
+  "dependencies": {
+    "amqplib": "^0.7.1"
+  }
+}
