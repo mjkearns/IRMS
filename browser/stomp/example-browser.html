@@ -1,0 +1,73 @@
+<!-- 
+  To use:
+    Open this file in a browser directly (no need to serve this through a web server)
+
+  Requirements:
+    RabbitMQ server with STOMP and STOMP WebSockets plugins enabled (this is not enabled by default)
+    Run this command from this folder to launch a docker instance running RabbitMQ with the required plugins enabled.
+      docker run -d --name rabbitmq-stomp-unit-test -p 25672:5672 -p 8888:15672 -p 15674:15674 -v ${PWD}/tests/rabbitmq.config:/etc/rabbitmq/rabbitmq.config rabbitmq:3-management
+
+  Cleanup:
+    Terminate and remove the docker container
+      docker stop rabbitmq-stomp-unit-test
+      docker container rm rabbitmq-stop-unit-test
+
+  This simple example does the following:
+    - Connects to RabbitMQ using STOMP protocol over WebSockets
+    - Publishes a number every 500ms to an exchange with a routing key
+    - Subscribes to this exchange with a wildcard binding key and receives these published messages
+    - Disconnects after 10 seconds
+
+  All results are output the the developer console.
+
+  NOTE: In order to be able to publish and subscribe to exchanges (aka groups) they must already be defined in RabbitMQ
+  the current code uses 'amq.topic' as these are provided by default by RabbitMQ.
+
+  If you wish to view the management interface for RabbitMQ exposed by this docker container, this can be viewed at:
+    http:://localhost:8888/
+-->
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>RabbitMQ Web STOMP Examples</title>
+    <script src="./node_modules/@stomp/stompjs/bundles/stomp.umd.js"></script>
+    <script src="./rabbitmq-stomp.js"></script>
+  </head>
+  <body>
+    <h1>RabbitMQ Web STOMP Examples</h1>
+    <script>
+      async function run() {
+
+        let options = {}
+        // enable this line if you want extended debugging from both this adaptor and the STOMP library
+        //options = { debug: true, debugStomp: true }
+
+        console.log('CONNECT')
+        let conn = await new RabbitmqStomp('127.0.0.1:15674', options)
+        console.log('CONNECTED:', conn.connected)
+
+        let counter = 1
+        let timer = setInterval(() => {
+          console.log('PUBLISHING: #' + counter)
+          conn.publish('amq.topic', 'some.special', counter++)
+        }, 500)
+
+        conn.subscribe('amq.topic', 'some.#', (frame) => {
+          console.log('RECEIVED:', frame)
+        })
+
+        setTimeout(async () => {
+          console.log('DISCONNECTING')
+          clearInterval(timer)
+          await conn.disconnect()
+          console.log('DISCONNECTED, CONNECTED:', conn.connected)
+        }, 10000)
+      }
+
+      let conn = run()
+
+    </script>
+  </body>
+</html>
