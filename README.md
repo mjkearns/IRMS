@@ -99,19 +99,18 @@ npx husky add .husky/pre-commit "< command to run >"
 
 Another entry point for running commands on staged files is to modify the package.json "lint-staged" property.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 Other possible git hook entry points include: applypatch, commit-msg, post-update, pre-applypatch, pre-commit, prepare-commit-msg, pre-push, pre-rebase, update
+
+## Git Version
+
+This feature requires git version 2.9 or above, Ubuntu 16 appears to have version 2.7. You can upgrade git with the following:
+
+```
+# check current git version
+git --version
+
+sudo add-apt-repository ppa:git-core/ppa -y
+sudo apt-get update
+sudo apt-get install git -y
+git --version
+```
