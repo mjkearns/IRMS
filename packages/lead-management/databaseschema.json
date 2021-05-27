@@ -1,0 +1,37 @@
+{
+  "tables": [
+    {
+      "name": "lead_deposit",
+      "columns": [
+        {
+          "name": "ldp_id",
+          "datatype": "int(11)",
+          "not_null": true,
+          "auto_increment": true
+        },
+        {
+          "name": "tmd_id",
+          "datatype": "int(11)"
+        },
+        {
+          "name": "ldp_timestamp",
+          "datatype": "datetime"
+        },
+        {
+          "name": "ldp_x",
+          "datatype": "double"
+        },
+        {
+          "name": "ldp_z",
+          "datatype": "double"
+        }
+      ],
+      "keys": [
+        {
+          "name": "PRIMARY",
+          "columns": [{"name": "ldp_id"}]
+        }
+      ]
+    }
+  ]
+}
