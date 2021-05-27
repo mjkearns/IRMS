@@ -24,43 +24,43 @@ const TerrainGrid = require('./process-terrain')
 //    }
 //  }
 
-let model = require('./majura-mtr-terrain.json')
+const model = require('./majura-mtr-terrain.json')
 
 function manual() {
-  let terrain = new TerrainGrid()
+  const terrain = new TerrainGrid()
 
-  let ok = terrain.validateModel(model)
+  const ok = terrain.validateModel(model)
   if (!ok) {
     console.error('Invalid model')
     return
   }
 
   // find all referenced entries and populate them with any evlevation adjustments
-  let expandedModel = terrain.processReferences(model)
+  const expandedModel = terrain.processReferences(model)
 
   // summary of the bounds of the model
-  let bounds = terrain.determineBounds(expandedModel)
+  const bounds = terrain.determineBounds(expandedModel)
 
   // offset all elevations to create a zero baseline
-  let normalisedModel = terrain.zeroElevations(expandedModel)
+  const normalisedModel = terrain.zeroElevations(expandedModel)
 
   // fill in all the blanks in the model to give 1x1 cell coverage
-  let interpolatedModel = terrain.interpolate(normalisedModel, bounds)
+  const interpolatedModel = terrain.interpolate(normalisedModel, bounds)
 
   // expand the width by extrapolating the edge cells by 30 units
-  let extrapolatedModel = terrain.extrapolateWidth(interpolatedModel, 30)
+  const extrapolatedModel = terrain.extrapolateWidth(interpolatedModel, 30)
 
   // generate an svg of the results for visualisation purposes only
-  let svg = terrain.generateSvg(extrapolatedModel)
+  const svg = terrain.generateSvg(extrapolatedModel)
   fs.writeFileSync('example-manual.svg', svg)
 }
 
 function auto() {
   // let the class do all the steps
-  let terrain = new TerrainGrid(model)
+  const terrain = new TerrainGrid(model)
 
   // generate an svg of the results for visualisation purposes only
-  let svg = terrain.generateSvg(terrain.model)
+  const svg = terrain.generateSvg(terrain.model)
   fs.writeFileSync('example-auto.svg', svg)
 }
 

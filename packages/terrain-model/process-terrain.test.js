@@ -1,6 +1,6 @@
 const TerrainGrid = require('./process-terrain')
 
-let examples = {
+const examples = {
   modelOne: {
     settings: {
       laneWidth: 5
@@ -61,12 +61,12 @@ let examples = {
 
 describe('', () => {
   it('empty constructor', () => {
-    let grid = new TerrainGrid()
+    const grid = new TerrainGrid()
     expect(grid).toBeDefined()
   })
 
   it('validation fail', () => {
-    let grid = new TerrainGrid()
+    const grid = new TerrainGrid()
     expect(grid.validateModel({})).toBe(false)
     expect(grid.validateModel(1234)).toBe(false)
     expect(grid.validateModel('hello')).toBe(false)
@@ -90,14 +90,14 @@ describe('', () => {
   })
 
   it('validation pass', () => {
-    let grid = new TerrainGrid()
+    const grid = new TerrainGrid()
     expect(grid.validateModel(examples.modelOne)).toBe(true)
     expect(grid.validateModel(examples.modelTwo)).toBe(true)
     expect(grid.validateModel(examples.modelReference)).toBe(true)
   })
 
   it('populate references', () => {
-    let grid = new TerrainGrid()
+    const grid = new TerrainGrid()
     let model = grid.processReferences(examples.modelReference)
     expect(model).toEqual({
       settings: { laneWidth: 5 },
@@ -113,8 +113,8 @@ describe('', () => {
   })
 
   it('bounds', () => {
-    let grid = new TerrainGrid()
-    let bounds = grid.determineBounds(examples.modelTwo)
+    const grid = new TerrainGrid()
+    const bounds = grid.determineBounds(examples.modelTwo)
     expect(bounds.elevation).toEqual({ min: 10, max: 30 })
     expect(bounds.distance).toEqual({ min: 0, max: 10 })
     expect(bounds.lanes).toBe(2)
@@ -122,7 +122,7 @@ describe('', () => {
   })
 
   it('adjust elevations', () => {
-    let grid = new TerrainGrid()
+    const grid = new TerrainGrid()
     let model = grid.adjustElevations(examples.modelTwo)
     expect(model).toEqual({
       0: { label: 'item0m', distance: 0, elevations: [10, 20] },
@@ -137,7 +137,7 @@ describe('', () => {
   })
 
   it('zero elevations', () => {
-    let grid = new TerrainGrid()
+    const grid = new TerrainGrid()
     let model = grid.adjustElevations(examples.modelTwo, 100)
     model = grid.zeroElevations(model)
     expect(model).toEqual({
@@ -147,9 +147,9 @@ describe('', () => {
   })
 
   it('interpolate length', () => {
-    let grid = new TerrainGrid()
-    let bounds = grid.determineBounds(examples.modelTwo)
-    let model = grid.interpolateLength(examples.modelTwo, bounds)
+    const grid = new TerrainGrid()
+    const bounds = grid.determineBounds(examples.modelTwo)
+    const model = grid.interpolateLength(examples.modelTwo, bounds)
     expect(model['0']).toEqual({
       label: 'item0m',
       distance: 0,
@@ -173,9 +173,9 @@ describe('', () => {
   })
 
   it('interpolate width', () => {
-    let grid = new TerrainGrid()
-    let bounds = grid.determineBounds(examples.modelTwo)
-    let model = grid.interpolateWidth(examples.modelTwo, bounds)
+    const grid = new TerrainGrid()
+    const bounds = grid.determineBounds(examples.modelTwo)
+    const model = grid.interpolateWidth(examples.modelTwo, bounds)
     expect(model['0']).toEqual({
       label: 'item0m',
       distance: 0,
@@ -189,8 +189,8 @@ describe('', () => {
   })
 
   it('extrapolate width', () => {
-    let grid = new TerrainGrid()
-    let model = grid.extrapolateWidth(examples.modelTwo, 1)
+    const grid = new TerrainGrid()
+    const model = grid.extrapolateWidth(examples.modelTwo, 1)
     expect(model['0']).toEqual({
       label: 'item0m',
       distance: 0,
@@ -204,8 +204,8 @@ describe('', () => {
   })
 
   it('build array', () => {
-    let grid = new TerrainGrid(examples.modelTwo)
-    let array = grid.buildArray(grid.model)
+    const grid = new TerrainGrid(examples.modelTwo)
+    const array = grid.buildArray(grid.model)
     expect(array.length).toBe(11)
     expect(array).toEqual([
       [0, 2.5, 5, 7.5, 10],
@@ -223,8 +223,8 @@ describe('', () => {
   })
 
   it('build string', () => {
-    let grid = new TerrainGrid(examples.modelTwo)
-    let string = grid.buildString(grid.model)
+    const grid = new TerrainGrid(examples.modelTwo)
+    const string = grid.buildString(grid.model)
     expect(string).toEqual(
       '0.00 2.50 5.00 7.50 10.00\n1.00 3.50 6.00 8.50 11.00\n2.00 4.50 7.00 9.50 12.00\n3.00 5.50 8.00 10.50 13.00\n4.00 6.50 9.00 11.50 14.00\n5.00 7.50 10.00 12.50 15.00\n6.00 8.50 11.00 13.50 16.00\n7.00 9.50 12.00 14.50 17.00\n8.00 10.50 13.00 15.50 18.00\n9.00 11.50 14.00 16.50 19.00\n10.00 12.50 15.00 17.50 20.00\n'
     )

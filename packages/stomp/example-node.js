@@ -15,7 +15,7 @@
 const RabbitmqStomp = require('./rabbitmq-stomp')
 
 async function run() {
-  let instance = await new RabbitmqStomp('localhost:15674')
+  const instance = await new RabbitmqStomp('localhost:15674')
 
   console.log('Connected = ', instance.connected)
 

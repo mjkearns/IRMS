@@ -31,6 +31,7 @@ class RabbitmqStomp {
   constructor(host, options = {}) {
     this.debug = options.debug || false
     this.client = null
+    // eslint-disable-next-line no-async-promise-executor
     return new Promise(async (resolve) => {
       await this.connect(host, options)
       resolve(this)
@@ -42,11 +43,11 @@ class RabbitmqStomp {
       return false
     }
 
-    let config = this._decodeConfig(host, options)
+    const config = this._decodeConfig(host, options)
 
     if (config) {
       return new Promise((resolve) => {
-        this.client = new StompJs.Client(config)
+        this.client = new StompJs.Client(config) // eslint-disable-line no-undef
         this.client.onChangeState = this._onChangeState.bind(this, resolve)
         this.client.onConnect = this._onConnect.bind(this, resolve)
         this.client.onDisconnect = this._onDisconnect.bind(this, resolve)
@@ -66,7 +67,7 @@ class RabbitmqStomp {
 
   _decodeConfig(host, options) {
     try {
-      let { brokerURL, username, password } = this._decodeUrl(host)
+      const { brokerURL, username, password } = this._decodeUrl(host)
       return {
         brokerURL,
         connectHeaders: {
@@ -160,13 +161,13 @@ class RabbitmqStomp {
       return false
     }
 
-    let destination = this._parseDestination(group, topic)
+    const destination = this._parseDestination(group, topic)
     if (!destination) {
       return false
     }
 
-    let content = this._parseContent(data)
-    let headers = this._parseHeaders(content.contentType, options)
+    const content = this._parseContent(data)
+    const headers = this._parseHeaders(content.contentType, options)
 
     this.client.publish({
       destination,
@@ -187,10 +188,10 @@ class RabbitmqStomp {
       // /exchange/<exchange_name/group>/<routing/binding key>
       group = group || ''
       group = group.replace('/', '')
-      let topicParts = topic.split('/')
+      const topicParts = topic.split('/')
       return '/' + ['exchange', group, ...topicParts].join('/')
     } else {
-      let topicParts = topic.split('/')
+      const topicParts = topic.split('/')
       return '/' + ['topic', ...topicParts].join('/')
     }
   }
@@ -218,7 +219,7 @@ class RabbitmqStomp {
   }
 
   _parseHeaders(contentType, options) {
-    let result = Object.assign({}, options)
+    const result = Object.assign({}, options)
     result['content-type'] = contentType || 'text/plain'
     return result
   }
@@ -228,19 +229,20 @@ class RabbitmqStomp {
       return false
     }
 
-    let destination = this._parseDestination(group, topic)
+    const destination = this._parseDestination(group, topic)
     if (!destination) {
       return false
     }
 
     return this.client.subscribe(destination, (frame) => {
       let content = frame.body
-      let contentType = frame && frame.headers && frame.headers['content-type']
+      const contentType =
+        frame && frame.headers && frame.headers['content-type']
       if (contentType === 'application/json') {
         content = JSON.parse(content)
       }
 
-      let ack = callback(content, frame.headers, {
+      const ack = callback(content, frame.headers, {
         command: frame.command,
         escapeHeadervalues: frame.escapeHeadervalues,
         isBinaryBody: frame.isBinaryBody,
