@@ -1,0 +1,21 @@
+body {
+  margin: 0;
+  color: #eee;
+  font-family: sans-serif;
+}
+
+.header {
+  display: flex;
+  left: 0;
+  right: 0;
+  top: 0;
+  position: absolute;
+  background-color: #121212;
+  padding: 10px;
+  align-items: flex-start;
+}
+
+.header-item {
+  align-self: center;
+  margin-inline-end: 20px;
+}
