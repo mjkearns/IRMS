@@ -5,7 +5,7 @@ class TerrainGrid {
   }
 
   processSettings(model, settings) {
-    let result = (model && model.settings) || {}
+    const result = (model && model.settings) || {}
     return Object.assign(
       {
         zeroElevations: true,
@@ -21,7 +21,7 @@ class TerrainGrid {
     let result = false
     if (this.validateModel(model)) {
       result = this.processReferences(model)
-      let bounds = this.determineBounds(result)
+      const bounds = this.determineBounds(result)
       if (this.settings.zeroElevations) {
         result = this.zeroElevations(result, bounds)
       }
@@ -39,8 +39,8 @@ class TerrainGrid {
     }
 
     let entries = 0
-    let references = this.compileReferenceMap(model)
-    for (let key in model) {
+    const references = this.compileReferenceMap(model)
+    for (const key in model) {
       if (key !== 'settings') {
         entries++
         if (!this._validateModelEntry(references, model[key])) {
@@ -55,18 +55,18 @@ class TerrainGrid {
   _validateModelEntry(references, entry) {
     if (typeof entry === 'object') {
       if (
-        entry.hasOwnProperty('distance') &&
+        Object.prototype.hasOwnProperty.call(entry, 'distance') &&
         typeof entry.distance === 'number'
       ) {
         if (
-          entry.hasOwnProperty('elevations') &&
+          Object.prototype.hasOwnProperty.call(entry, 'elevations') &&
           Array.isArray(entry.elevations)
         ) {
           return true
         } else if (
-          entry.hasOwnProperty('reference') &&
+          Object.prototype.hasOwnProperty.call(entry, 'reference') &&
           typeof entry.reference === 'string' &&
-          references.hasOwnProperty(entry.reference)
+          Object.prototype.hasOwnProperty.call(references, entry.reference)
         ) {
           return true
         }
@@ -76,14 +76,14 @@ class TerrainGrid {
   }
 
   processReferences(model) {
-    let result = {}
-    let references = this.compileReferenceMap(model)
-    for (let key in model) {
-      let entry = model[key]
+    const result = {}
+    const references = this.compileReferenceMap(model)
+    for (const key in model) {
+      const entry = model[key]
       if (key === 'settings') {
         result[key] = entry
       } else {
-        if (entry.hasOwnProperty('reference')) {
+        if (Object.prototype.hasOwnProperty.call(entry, 'reference')) {
           result[key] = this.processReference(references, entry)
         } else {
           result[key] = this.copyEntry(entry)
@@ -94,17 +94,17 @@ class TerrainGrid {
   }
 
   compileReferenceMap(model) {
-    let result = {}
-    for (let key in model) {
-      let entry = model[key]
+    const result = {}
+    for (const key in model) {
+      const entry = model[key]
       result[entry.label || key] = entry
     }
     return result
   }
 
   processReference(references, entry) {
-    let reference = references[entry.reference]
-    let adjustedElevations = reference.elevations.map((value) => {
+    const reference = references[entry.reference]
+    const adjustedElevations = reference.elevations.map((value) => {
       return value + (entry.adjustment || 0)
     })
     return {
@@ -121,7 +121,7 @@ class TerrainGrid {
   }
 
   determineBounds(model) {
-    let result = {
+    const result = {
       lanes: null,
       laneWidth: this.settings.laneWidth,
       elevation: {
@@ -134,9 +134,9 @@ class TerrainGrid {
       }
     }
 
-    let distances = []
-    for (let key in model) {
-      let entry = model[key]
+    const distances = []
+    for (const key in model) {
+      const entry = model[key]
 
       if (key !== 'settings') {
         result.lanes =
@@ -171,15 +171,15 @@ class TerrainGrid {
 
   zeroElevations(model, bounds) {
     bounds = bounds || this.determineBounds(model)
-    let elevationAdjustment = -bounds.elevation.min
+    const elevationAdjustment = -bounds.elevation.min
     return this.adjustElevations(model, elevationAdjustment)
   }
 
   adjustElevations(model, adjustment = 0) {
-    let result = {}
-    for (let key in model) {
+    const result = {}
+    for (const key in model) {
       if (key !== 'settings') {
-        let entry = model[key]
+        const entry = model[key]
         result[key] = {
           label: entry.label,
           distance: entry.distance,
@@ -197,18 +197,18 @@ class TerrainGrid {
   }
 
   interpolateLength(model, bounds) {
-    let result = {}
+    const result = {}
     for (let index = 0; index < bounds.distances.length; ++index) {
-      let distance = bounds.distances[index]
-      let nextDistance = bounds.distances[index + 1] || distance
-      let entry = model[distance]
-      let nextEntry = model[nextDistance]
+      const distance = bounds.distances[index]
+      const nextDistance = bounds.distances[index + 1] || distance
+      const entry = model[distance]
+      const nextEntry = model[nextDistance]
 
-      let span = nextDistance - distance
+      const span = nextDistance - distance
       result[distance] = entry
       for (let position = 1; position <= span; ++position) {
-        let factor = position / span
-        let interpolatedDistance = distance + position
+        const factor = position / span
+        const interpolatedDistance = distance + position
         result[interpolatedDistance] = {
           label: 'interpolated-' + interpolatedDistance,
           distance: interpolatedDistance,
@@ -220,14 +220,14 @@ class TerrainGrid {
   }
 
   interpolateBetweenDistances(factor, firstEntry, nextEntry) {
-    let elevations = []
+    const elevations = []
     for (let index = 0; index < firstEntry.elevations.length; ++index) {
-      let firstElevation = firstEntry.elevations[index]
-      let nextElevation =
+      const firstElevation = firstEntry.elevations[index]
+      const nextElevation =
         index < nextEntry.elevations.length
           ? nextEntry.elevations[index]
           : firstElevation
-      let interpolatedElevation = this.valueBetween(
+      const interpolatedElevation = this.valueBetween(
         factor,
         firstElevation,
         nextElevation
@@ -238,11 +238,11 @@ class TerrainGrid {
   }
 
   interpolateWidth(model, bounds) {
-    let result = {}
-    let laneSpacing = bounds.laneWidth
-    for (let key in model) {
+    const result = {}
+    const laneSpacing = bounds.laneWidth
+    for (const key in model) {
       if (key !== 'settings') {
-        let entry = model[key]
+        const entry = model[key]
         result[key] = {
           label: entry.label,
           distance: entry.distance,
@@ -257,13 +257,13 @@ class TerrainGrid {
   }
 
   interpolateBetweenLanes(spacing, elevations) {
-    let result = [elevations[0]]
+    const result = [elevations[0]]
     for (let index = 1; index < elevations.length; ++index) {
-      let firstElevation = elevations[index - 1]
-      let nextElevation = elevations[index]
+      const firstElevation = elevations[index - 1]
+      const nextElevation = elevations[index]
       for (let laneOffset = 1; laneOffset < spacing; ++laneOffset) {
-        let factor = laneOffset / (spacing - 1)
-        let interpolatedElevation = this.valueBetween(
+        const factor = laneOffset / (spacing - 1)
+        const interpolatedElevation = this.valueBetween(
           factor,
           firstElevation,
           nextElevation
@@ -275,19 +275,19 @@ class TerrainGrid {
   }
 
   extrapolateWidth(model, width) {
-    let result = {}
-    for (let key in model) {
-      let entry = model[key]
-      if (entry.hasOwnProperty('elevations')) {
-        let pre = Array.from(Array(width), () => entry.elevations[0])
-        let post = Array.from(
+    const result = {}
+    for (const key in model) {
+      const entry = model[key]
+      if (Object.prototype.hasOwnProperty.call(entry, 'elevations')) {
+        const pre = Array.from(Array(width), () => entry.elevations[0])
+        const post = Array.from(
           Array(width),
           () => entry.elevations[entry.elevations.length - 1]
         )
         result[key] = {
           label: entry.label,
           distance: entry.distance,
-          elevations: [].concat.apply([], [pre, entry.elevations, post])
+          elevations: [].concat(pre, entry.elevations, post)
         }
       }
     }
@@ -295,10 +295,10 @@ class TerrainGrid {
   }
 
   buildArray(model) {
-    let result = []
-    for (let key in model) {
-      let entry = model[key]
-      let distance = entry.distance
+    const result = []
+    for (const key in model) {
+      const entry = model[key]
+      const distance = entry.distance
       result[distance] = [...entry.elevations]
     }
     return result
@@ -306,25 +306,25 @@ class TerrainGrid {
 
   buildString(model) {
     let result = ''
-    let array = this.buildArray(model)
+    const array = this.buildArray(model)
     for (let distanceIndex = 0; distanceIndex < array.length; distanceIndex++) {
-      let section = array[distanceIndex]
+      const section = array[distanceIndex]
       result += section.map((value) => value.toFixed(2)).join(' ') + '\n'
     }
     return result
   }
 
   generateSvg(model) {
-    let bounds = this.determineBounds(model)
-    let elevationScale = bounds.elevation.max - bounds.elevation.min
+    const bounds = this.determineBounds(model)
+    const elevationScale = bounds.elevation.max - bounds.elevation.min
 
     let svg = `<svg width="${bounds.lanes}" height="${bounds.distances.length}">`
-    for (let key in model) {
-      let entry = model[key]
+    for (const key in model) {
+      const entry = model[key]
       entry.elevations.forEach((elevation, index) => {
-        let factor = (elevation - bounds.elevation.min) / elevationScale
-        let color = Math.floor(factor * 255)
-        let fill = `rgb(${color}, ${color}, ${color})`
+        const factor = (elevation - bounds.elevation.min) / elevationScale
+        const color = Math.floor(factor * 255)
+        const fill = `rgb(${color}, ${color}, ${color})`
         svg += `<rect width="1" height="1" x="${index}" y="${entry.distance}" style="fill:${fill};stroke:none;" />`
       })
     }

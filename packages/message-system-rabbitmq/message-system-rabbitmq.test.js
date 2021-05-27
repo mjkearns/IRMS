@@ -1,9 +1,9 @@
 const MessageSystem = require('./message-system-rabbitmq')
 
 let system = null
-let host = 'localhost:25672'
+const host = 'localhost:25672'
 
-let example = {
+const example = {
   queue: 'unit-test',
   topic: 'unit.test.topic',
   messageJson: {
@@ -28,41 +28,41 @@ describe('connections', () => {
   })
 
   it('fail to connect to invalid host', async () => {
-    let pipeId = await system.connect('invalid-host')
+    const pipeId = await system.connect('invalid-host')
     expect(pipeId).toBe(false)
     expect(system.lastError).not.toBeNull()
   })
 
   it('gracefully disconnect from invalid connection', async () => {
-    let pipeId = await system.connect('invalid-host')
-    let disconnect = await system.disconnect()
+    await system.connect('invalid-host')
+    const disconnect = await system.disconnect()
     expect(disconnect).toBe(true)
     expect(system.lastError).not.toBeNull()
   })
 
   it('connect sucessfully', async () => {
-    let pipeId = await system.connect(host)
+    const pipeId = await system.connect(host)
     expect(pipeId).not.toBe(false)
     expect(pipeId).toBeGreaterThan(0)
     expect(system.lastError).toBeNull()
   })
 
   it('disconnect sucessfully', async () => {
-    let pipeId = await system.connect(host)
-    let disconnect = await system.disconnect()
+    await system.connect(host)
+    const disconnect = await system.disconnect()
     expect(disconnect).toBe(true)
   })
 
   it('connecting while already connected', async () => {
-    let pipeId = await system.connect(host)
-    let pipeId2 = await system.connect(host)
+    const pipeId = await system.connect(host)
+    const pipeId2 = await system.connect(host)
     expect(pipeId).toBeGreaterThan(0)
     expect(pipeId2).toBe(false)
   })
 
   it('additional pipe creation', async () => {
-    let pipeId1 = await system.connect(host)
-    let pipeId2 = await system.newPipe()
+    const pipeId1 = await system.connect(host)
+    const pipeId2 = await system.newPipe()
     expect(pipeId1).toBeGreaterThan(0)
     expect(pipeId2).toBeGreaterThan(0)
     expect(pipeId2).not.toBe(pipeId1)
@@ -79,15 +79,19 @@ describe('producers', () => {
   })
 
   it('publish to invalid channel', async () => {
-    let pipeId = await system.connect(host)
-    let invalidId = pipeId + 10
-    let ok = await system.publish(invalidId, example.queue, example.messageJson)
+    const pipeId = await system.connect(host)
+    const invalidId = pipeId + 10
+    const ok = await system.publish(
+      invalidId,
+      example.queue,
+      example.messageJson
+    )
     expect(ok).toBe(false)
   })
 
   it('publish sucessfully', async () => {
-    let pipeId = await system.connect(host)
-    let ok = await system.publish(
+    const pipeId = await system.connect(host)
+    const ok = await system.publish(
       pipeId,
       example.queue,
       example.topic,
@@ -97,7 +101,7 @@ describe('producers', () => {
   })
 
   it('publish to invalid pipe', async () => {
-    let ok = await system.publish(
+    const ok = await system.publish(
       999,
       example.queue,
       example.topic,
@@ -117,7 +121,7 @@ describe('consumers', () => {
   })
 
   it('subscribe to invalid pipe', async () => {
-    let ok = await system.subscribe(
+    const ok = await system.subscribe(
       999,
       example.queue,
       example.topic,
@@ -127,8 +131,8 @@ describe('consumers', () => {
   })
 
   it('subscribe', async () => {
-    let pipeId = await system.connect(host)
-    let subOk = await system.subscribe(
+    const pipeId = await system.connect(host)
+    const subOk = await system.subscribe(
       pipeId,
       example.queue,
       example.topic,
@@ -138,15 +142,15 @@ describe('consumers', () => {
   })
 
   it('subscribe and publish', async () => {
-    let pipeId = await system.connect(host)
-    let ok = await system.publish(
+    const pipeId = await system.connect(host)
+    const ok = await system.publish(
       pipeId,
       example.queue,
       example.topic,
       example.messageJson
     )
     expect(ok).toBe(true)
-    let subOk = await system.subscribe(
+    const subOk = await system.subscribe(
       pipeId,
       example.queue,
       example.topic,
@@ -156,8 +160,8 @@ describe('consumers', () => {
   })
 
   it('subscribe and receive', async (done) => {
-    let pipeId = await system.connect(host)
-    let subOk = await system.subscribe(
+    const pipeId = await system.connect(host)
+    const subOk = await system.subscribe(
       pipeId,
       example.queue,
       example.topic,
@@ -171,7 +175,7 @@ describe('consumers', () => {
     )
     expect(subOk).toBe(true)
 
-    let pubOk = await system.publish(
+    const pubOk = await system.publish(
       pipeId,
       example.queue,
       example.topic,
@@ -181,8 +185,8 @@ describe('consumers', () => {
   })
 
   it('subscribe and receive string', async (done) => {
-    let pipeId = await system.connect(host)
-    let subOk = await system.subscribe(
+    const pipeId = await system.connect(host)
+    const subOk = await system.subscribe(
       pipeId,
       example.queue,
       example.topic,
@@ -196,7 +200,7 @@ describe('consumers', () => {
     )
     expect(subOk).toBe(true)
 
-    let pubOk = await system.publish(
+    const pubOk = await system.publish(
       pipeId,
       example.queue,
       example.topic,

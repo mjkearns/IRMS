@@ -1,5 +1,17 @@
 # IRMS - Intelligent Range Management System
 
+# TLDR Summary
+
+Suggested VSCode Plugins
+
+- prettier-vscode "Prettier - Code Formatter"
+- vscode-eslint "ESLint"
+
+GIT Commits
+
+- Modified files are made Prettier
+- ESLint rules must pass
+
 # Basic Structure
 
 # LERNA - Tool for managing JavaScript projects
@@ -101,6 +113,8 @@ Another entry point for running commands on staged files is to modify the packag
 
 Other possible git hook entry points include: applypatch, commit-msg, post-update, pre-applypatch, pre-commit, prepare-commit-msg, pre-push, pre-rebase, update
 
+Attention: Husky changes git's core.hooksPath, this means the standard .git/hooks/ is no longer used and any other manual rules in this location are ignored.
+
 ## Git Version
 
 This feature requires git version 2.9 or above, Ubuntu 16 appears to have version 2.7. You can upgrade git with the following:
@@ -113,4 +127,34 @@ sudo add-apt-repository ppa:git-core/ppa -y
 sudo apt-get update
 sudo apt-get install git -y
 git --version
+```
+
+# ESLINT & STANDARDJS - Code linters and error checkers
+
+ESLint (https://eslint.org/) finds and fixes problems in JavaScript code, StandardJS (https://standardjs.com/) provides a set of opinionated rules JavaScript files should follow to help prevent developer mistakes.
+
+These have been installed to work with Prettier and Jest. This is configured through the "eslintConfig" property in the package.json file.
+
+Adding the VSCode 'vscode-eslint "ESLint"' plugin will highlight errors while editing.
+
+## Rule Overrides
+
+Controlled by "rules": { ... }
+
+- The prefer constant rule has been downgraded to a warning.
+
+## Ignored Filters
+
+Controlled by "ignorePatterns": [ ... ]
+
+- any \*.js files in a /build/ folder as these are typically compiled bundles
+
+## Manual Commands
+
+```
+# list the errors found
+eslint .
+
+# automatically fix those errors than can be corrected
+eslint --fix .
 ```

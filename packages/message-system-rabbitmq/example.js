@@ -7,13 +7,13 @@
 const MessageSystem = require('./message-system-rabbitmq')
 
 async function run() {
-  let host = 'localhost:5672'
+  const host = 'localhost:5672'
 
   // instantiate and connect (also creates an initial pipe/channel on the connection)
   console.log('Connecting to ' + host)
-  let system = await new MessageSystem(host)
+  const system = await new MessageSystem(host)
 
-  let pipeId = null // here null means the first available pipe
+  const pipeId = null // here null means the first available pipe
 
   // alternativly you can do this in two stages
   // let system = await new MessageSystem()
@@ -30,14 +30,14 @@ async function run() {
   console.log('Subscribing to simple.example.#')
   system.subscribe(pipeId, 'example', 'simple.example.#', handleMessage)
 
-  let timer1 = setInterval(() => {
-    let message = 'Hello ' + Math.round(Math.random() * 1000)
+  const timer1 = setInterval(() => {
+    const message = 'Hello ' + Math.round(Math.random() * 1000)
     system.publish(pipeId, 'example', 'simple.example.hello', message)
     console.log('Published: ' + message)
   }, 1500)
 
-  let timer2 = setInterval(() => {
-    let message = 'Goodbye ' + Math.round(Math.random() * 1000)
+  const timer2 = setInterval(() => {
+    const message = 'Goodbye ' + Math.round(Math.random() * 1000)
     system.publish(pipeId, 'example', 'simple.example.goodbye', message)
     console.log('Published: ' + message)
   }, 2000)

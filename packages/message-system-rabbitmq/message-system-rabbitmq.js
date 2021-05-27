@@ -20,11 +20,11 @@ class Connection {
       return false
     }
 
-    let url = this._decodeUrl(host, options)
+    const url = this._decodeUrl(host, options)
 
     if (url) {
       try {
-        let socketOptions = this._parseSocketOptions(options)
+        const socketOptions = this._parseSocketOptions(options)
         this.connector = await amqp.connect(url, socketOptions)
         return await this.newPipe()
       } catch (e) {
@@ -118,15 +118,14 @@ class Connection {
 }
 
 class Pipes {
-  static idCounter = 0
   constructor() {
     this.pipes = new Map()
   }
 
   async create(connector) {
     if (connector) {
-      let channel = await connector.createChannel()
-      let pipeId = ++Pipes.idCounter
+      const channel = await connector.createChannel()
+      const pipeId = ++Pipes.idCounter
       this.pipes.set(pipeId, {
         channel,
         exchanges: new Exchanges(),
@@ -140,13 +139,13 @@ class Pipes {
   }
 
   get(id) {
-    let pipe =
+    const pipe =
       id === null ? this.pipes.values().next().value : this.pipes.get(id)
     return (pipe && pipe.channel) || false
   }
 
   async publish(id, group, topic, message, options) {
-    let pipe = this.pipes.get(id || 1)
+    const pipe = this.pipes.get(id || 1)
     if (!pipe || !pipe.channel) {
       return false
     }
@@ -162,15 +161,15 @@ class Pipes {
   }
 
   async subscribe(id, group, topics, callback, options) {
-    let pipe = this.pipes.get(id || 1)
+    const pipe = this.pipes.get(id || 1)
     if (!pipe || !pipe.channel) {
       return false
     }
 
     await pipe.exchanges.obtain(pipe.channel, group, 'topic', options)
-    let queue = await pipe.queues.obtain(pipe.channel, group, options)
+    const queue = await pipe.queues.obtain(pipe.channel, group, options)
 
-    let bindTopics = Array.isArray(topics) ? topics : [topics]
+    const bindTopics = Array.isArray(topics) ? topics : [topics]
     bindTopics.forEach(async (key) => {
       await pipe.channel.bindQueue(queue.queue, group, key)
     })
@@ -178,6 +177,8 @@ class Pipes {
     return pipe.receiver.subscribe(pipe.channel, queue.queue, callback, options)
   }
 }
+
+Pipes.idCounter = 0
 
 class Exchanges {
   constructor() {
@@ -187,7 +188,7 @@ class Exchanges {
   async obtain(channel, group, type = 'topic', options = {}) {
     let exchange = this.exchanges.get(group)
     if (!exchange) {
-      let exchangeOptions = this._parseExchangeOptions(options)
+      const exchangeOptions = this._parseExchangeOptions(options)
       exchange = await channel.assertExchange(group, type, exchangeOptions)
       this.exchanges.set(group, exchange)
     }
@@ -206,8 +207,8 @@ class Exchanges {
 class Sender {
   async publish(channel, group, topic, message, options) {
     if (channel) {
-      let publishOptions = this._parsePublishOptions(options)
-      let buffer = this._createBuffer(message)
+      const publishOptions = this._parsePublishOptions(options)
+      const buffer = this._createBuffer(message)
       if (buffer) {
         publishOptions.contentType = buffer.contentType
         await channel.publish(group, topic, buffer.buffer, publishOptions)
@@ -272,7 +273,7 @@ class Queues {
   async obtain(channel, group, options) {
     let queue = group && this.queues.get(group)
     if (!queue) {
-      let queueOptions = this._parseGroupOptions(options)
+      const queueOptions = this._parseGroupOptions(options)
       queue = await channel.assertQueue('', queueOptions)
       this.queues.set(queue.queue, queue)
     }
@@ -298,13 +299,13 @@ class Queues {
 
 class Receiver {
   async subscribe(channel, queue, callback, options) {
-    let consumeOptions = this._parseConsumeOptions(options)
+    const consumeOptions = this._parseConsumeOptions(options)
     await channel.consume(
       queue,
       (message) => {
         if (message) {
           let content = message.content.toString()
-          let contentType =
+          const contentType =
             message && message.properties && message.properties.contentType
           if (contentType === 'application/json') {
             content = JSON.parse(content)
