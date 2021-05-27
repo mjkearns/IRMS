@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "repository": "gitlab:ats-engineering/event-aggregator",
   "scripts": {
     "prepare": "husky install",
     "start": "lerna run start",
@@ -14,7 +15,7 @@
   },
   "keywords": [],
   "author": "ATS",
-  "license": "",
+  "license": "SEE LICENSE IN LICENSE",
   "devDependencies": {
     "eslint": "^7.27.0",
     "eslint-config-prettier": "^8.3.0",
