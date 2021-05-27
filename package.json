@@ -1,0 +1,20 @@
+{
+  "name": "@ats/event-aggregator",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "lerna run start",
+    "test": "lerna run test",
+    "new-version": "lerna version --conventional-commits",
+    "diff": "lerna diff",
+    "list": "lerna list",
+    "bootstrap": "lerna clean --yes && lerna bootstrap --hoist"
+  },
+  "keywords": [],
+  "author": "ATS",
+  "license": "",
+  "devDependencies": {
+    "lerna": "^4.0.0"
+  }
+}
