@@ -6,12 +6,14 @@ let host = 'localhost:25672'
 let example = {
   queue: 'unit-test',
   topic: 'unit.test.topic',
-  messageJson: {api: '1.1.0', message: {header: 'Welcome', body: 'Hello World!'}},
+  messageJson: {
+    api: '1.1.0',
+    message: { header: 'Welcome', body: 'Hello World!' }
+  },
   messageString: 'Unit testing for the win!'
 }
 
 describe('connections', () => {
-
   beforeEach(async () => {
     system = await new MessageSystem()
   })
@@ -65,7 +67,6 @@ describe('connections', () => {
     expect(pipeId2).toBeGreaterThan(0)
     expect(pipeId2).not.toBe(pipeId1)
   })
-
 })
 
 describe('producers', () => {
@@ -86,12 +87,22 @@ describe('producers', () => {
 
   it('publish sucessfully', async () => {
     let pipeId = await system.connect(host)
-    let ok = await system.publish(pipeId, example.queue, example.topic, example.messageJson)
+    let ok = await system.publish(
+      pipeId,
+      example.queue,
+      example.topic,
+      example.messageJson
+    )
     expect(ok).toBe(true)
   })
 
   it('publish to invalid pipe', async () => {
-    let ok = await system.publish(999, example.queue, example.topic, example.messageJson)
+    let ok = await system.publish(
+      999,
+      example.queue,
+      example.topic,
+      example.messageJson
+    )
     expect(ok).toBe(false)
   })
 })
@@ -105,56 +116,92 @@ describe('consumers', () => {
     await system.disconnect()
   })
 
-  it ('subscribe to invalid pipe', async () => {
-    let ok = await system.subscribe(999, example.queue, example.topic, (message) => {
-    })
+  it('subscribe to invalid pipe', async () => {
+    let ok = await system.subscribe(
+      999,
+      example.queue,
+      example.topic,
+      (message) => {}
+    )
     expect(ok).toBe(false)
   })
 
   it('subscribe', async () => {
     let pipeId = await system.connect(host)
-    let subOk = await system.subscribe(pipeId, example.queue, example.topic, (message, fields, properties) => {
-    })
+    let subOk = await system.subscribe(
+      pipeId,
+      example.queue,
+      example.topic,
+      (message, fields, properties) => {}
+    )
     expect(subOk).toBe(true)
   })
 
   it('subscribe and publish', async () => {
     let pipeId = await system.connect(host)
-    let ok = await system.publish(pipeId, example.queue, example.topic, example.messageJson)
+    let ok = await system.publish(
+      pipeId,
+      example.queue,
+      example.topic,
+      example.messageJson
+    )
     expect(ok).toBe(true)
-    let subOk = await system.subscribe(pipeId, example.queue, example.topic, (message, fields, properties) => {
-    })
+    let subOk = await system.subscribe(
+      pipeId,
+      example.queue,
+      example.topic,
+      (message, fields, properties) => {}
+    )
     expect(subOk).toBe(true)
   })
 
   it('subscribe and receive', async (done) => {
     let pipeId = await system.connect(host)
-    let subOk = await system.subscribe(pipeId, example.queue, example.topic, (message, fields, properties) => {
-      expect(message).toEqual(example.messageJson)
-      expect(fields).toBeDefined()
-      expect(properties).toBeDefined()
-      expect(properties.contentType).toBe('application/json')
-      done()
-    })
+    let subOk = await system.subscribe(
+      pipeId,
+      example.queue,
+      example.topic,
+      (message, fields, properties) => {
+        expect(message).toEqual(example.messageJson)
+        expect(fields).toBeDefined()
+        expect(properties).toBeDefined()
+        expect(properties.contentType).toBe('application/json')
+        done()
+      }
+    )
     expect(subOk).toBe(true)
 
-    let pubOk = await system.publish(pipeId, example.queue, example.topic, example.messageJson)
+    let pubOk = await system.publish(
+      pipeId,
+      example.queue,
+      example.topic,
+      example.messageJson
+    )
     expect(pubOk).toBe(true)
   })
 
   it('subscribe and receive string', async (done) => {
     let pipeId = await system.connect(host)
-    let subOk = await system.subscribe(pipeId, example.queue, example.topic, (message, fields, properties) => {
-      expect(message).toBe(example.messageString)
-      expect(fields).toBeDefined()
-      expect(properties).toBeDefined()
-      expect(properties.contentType).toBe('text/plain')
-      done()
-    })
+    let subOk = await system.subscribe(
+      pipeId,
+      example.queue,
+      example.topic,
+      (message, fields, properties) => {
+        expect(message).toBe(example.messageString)
+        expect(fields).toBeDefined()
+        expect(properties).toBeDefined()
+        expect(properties.contentType).toBe('text/plain')
+        done()
+      }
+    )
     expect(subOk).toBe(true)
 
-    let pubOk = await system.publish(pipeId, example.queue, example.topic, example.messageString)
+    let pubOk = await system.publish(
+      pipeId,
+      example.queue,
+      example.topic,
+      example.messageString
+    )
     expect(pubOk).toBe(true)
   })
-
 })

@@ -1,0 +1,51 @@
+{
+  "name": "@ats/event-aggregator",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "repository": "gitlab:ats-engineering/event-aggregator",
+  "scripts": {
+    "prepare": "husky install",
+    "start": "lerna run start",
+    "test": "lerna run test",
+    "new-version": "lerna version --conventional-commits",
+    "diff": "lerna diff",
+    "list": "lerna list",
+    "bootstrap": "lerna clean --yes && lerna bootstrap --hoist"
+  },
+  "keywords": [],
+  "author": "ATS",
+  "license": "SEE LICENSE IN LICENSE",
+  "devDependencies": {
+    "eslint": "^7.27.0",
+    "eslint-config-prettier": "^8.3.0",
+    "husky": "^6.0.0",
+    "lerna": "^4.0.0",
+    "lint-staged": "^11.0.0",
+    "prettier": "2.3.0"
+  },
+  "prettier": {
+    "trailingComma": "none",
+    "semi": false,
+    "singleQuote": true
+  },
+  "lint-staged": {
+    "**/*": "prettier --write --ignore-unknown"
+  },
+  "eslintConfig": {
+    "env": {
+      "browser": true,
+      "node": true,
+      "es2021": true
+    },
+    "parserOptions": {
+      "ecmaVersion": 12,
+      "sourceType": "module"
+    },
+    "rules": {},
+    "extends": [
+      "eslint:recommended",
+      "prettier"
+    ]
+  }
+}

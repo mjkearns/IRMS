@@ -6,8 +6,7 @@
 
 const MessageSystem = require('./message-system-rabbitmq')
 
-async function run () {
-
+async function run() {
   let host = 'localhost:5672'
 
   // instantiate and connect (also creates an initial pipe/channel on the connection)

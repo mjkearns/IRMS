@@ -1,7 +1,7 @@
 const amqp = require('amqplib')
 
 class Connection {
-  constructor (host, options) {
+  constructor(host, options) {
     this.connector = null
     this.lastError = null
     return (async () => {
@@ -11,11 +11,11 @@ class Connection {
     })()
   }
 
-  connected () {
+  connected() {
     return this.connector !== null
   }
 
-  async connect (host, options = {}) {
+  async connect(host, options = {}) {
     if (this.connector || !host) {
       return false
     }
@@ -34,10 +34,10 @@ class Connection {
     return false
   }
 
-  _decodeUrl (host, options) {
+  _decodeUrl(host, options) {
     try {
       // workaround URL parsing bug for 'localhost:8080' resulting in protocol 'localhost:'
-      let url = (host.indexOf('://') === -1) ? 'amqp://' + host : host
+      let url = host.indexOf('://') === -1 ? 'amqp://' + host : host
       url = new URL(url)
       return {
         protocol: url.protocol.replace(':', '') || 'amqp',
@@ -45,7 +45,7 @@ class Connection {
         port: url.port || 5672,
         username: url.username || null,
         password: url.password || null,
-        
+
         locale: options.locale || 'en-US',
         frameMax: options.maxFrameSize || options.frameMax || 0,
         heartbeat: options.heartbeatPeriod || options.heartbeat || 0,
@@ -56,17 +56,19 @@ class Connection {
     }
   }
 
-  _parseSocketOptions (options) {
+  _parseSocketOptions(options) {
     return {
-      ...options.noDelay && {noDelay: options.noDelay},
-      ...options.certificate && {cert: options.certificate},
-      ...options.key && {key: options.key},
-      ...options.passPhrase && {passPhrase: options.passPhrase},
-      ...options.trustedCACertificates && {ca: options.trustedCACertificates}
+      ...(options.noDelay && { noDelay: options.noDelay }),
+      ...(options.certificate && { cert: options.certificate }),
+      ...(options.key && { key: options.key }),
+      ...(options.passPhrase && { passPhrase: options.passPhrase }),
+      ...(options.trustedCACertificates && {
+        ca: options.trustedCACertificates
+      })
     }
   }
 
-  async newPipe () {
+  async newPipe() {
     try {
       return await this.pipes.create(this.connector)
     } catch (e) {
@@ -75,11 +77,11 @@ class Connection {
     return false
   }
 
-  async disconnect () {
+  async disconnect() {
     if (!this.connector) {
       return true
     }
-    
+
     try {
       await this.connector.close()
       this.connector = null
@@ -90,7 +92,7 @@ class Connection {
     }
   }
 
-  async publish (pipeId, group, topic, message, options = {}) {
+  async publish(pipeId, group, topic, message, options = {}) {
     try {
       return await this.pipes.publish(pipeId, group, topic, message, options)
     } catch (e) {
@@ -99,9 +101,15 @@ class Connection {
     return false
   }
 
-  async subscribe (pipeId, group, topics, callback, options = {}) {
+  async subscribe(pipeId, group, topics, callback, options = {}) {
     try {
-      return await this.pipes.subscribe(pipeId, group, topics, callback, options)
+      return await this.pipes.subscribe(
+        pipeId,
+        group,
+        topics,
+        callback,
+        options
+      )
     } catch (e) {
       this.lastError = e
     }
@@ -111,11 +119,11 @@ class Connection {
 
 class Pipes {
   static idCounter = 0
-  constructor () {
+  constructor() {
     this.pipes = new Map()
   }
 
-  async create (connector) {
+  async create(connector) {
     if (connector) {
       let channel = await connector.createChannel()
       let pipeId = ++Pipes.idCounter
@@ -131,22 +139,29 @@ class Pipes {
     return false
   }
 
-  get (id) {
-    let pipe = (id === null) ? this.pipes.values().next().value : this.pipes.get(id)
+  get(id) {
+    let pipe =
+      id === null ? this.pipes.values().next().value : this.pipes.get(id)
     return (pipe && pipe.channel) || false
   }
 
-  async publish (id, group, topic, message, options) {
+  async publish(id, group, topic, message, options) {
     let pipe = this.pipes.get(id || 1)
     if (!pipe || !pipe.channel) {
       return false
     }
 
     await pipe.exchanges.obtain(pipe.channel, group, 'topic', options)
-    return await pipe.sender.publish(pipe.channel, group, topic, message, options)
+    return await pipe.sender.publish(
+      pipe.channel,
+      group,
+      topic,
+      message,
+      options
+    )
   }
 
-  async subscribe (id, group, topics, callback, options) {
+  async subscribe(id, group, topics, callback, options) {
     let pipe = this.pipes.get(id || 1)
     if (!pipe || !pipe.channel) {
       return false
@@ -155,8 +170,8 @@ class Pipes {
     await pipe.exchanges.obtain(pipe.channel, group, 'topic', options)
     let queue = await pipe.queues.obtain(pipe.channel, group, options)
 
-    let bindTopics = (Array.isArray(topics)) ? topics : [topics]
-    bindTopics.forEach(async key => {
+    let bindTopics = Array.isArray(topics) ? topics : [topics]
+    bindTopics.forEach(async (key) => {
       await pipe.channel.bindQueue(queue.queue, group, key)
     })
 
@@ -165,11 +180,11 @@ class Pipes {
 }
 
 class Exchanges {
-  constructor () {
+  constructor() {
     this.exchanges = new Map()
   }
 
-  async obtain (channel, group, type = 'topic', options = {}) {
+  async obtain(channel, group, type = 'topic', options = {}) {
     let exchange = this.exchanges.get(group)
     if (!exchange) {
       let exchangeOptions = this._parseExchangeOptions(options)
@@ -179,7 +194,7 @@ class Exchanges {
     return exchange
   }
 
-  _parseExchangeOptions (options) {
+  _parseExchangeOptions(options) {
     return {
       exclusive: options.exclusive || false,
       durable: options.durable || false,
@@ -204,33 +219,35 @@ class Sender {
 
   _parsePublishOptions(options) {
     return {
-      ...options.expiration && {expiration: options.expiration},
-      ...options.priority && {priority: options.priority},
-      ...options.persistent && {persistent: options.persistent},
+      ...(options.expiration && { expiration: options.expiration }),
+      ...(options.priority && { priority: options.priority }),
+      ...(options.persistent && { persistent: options.persistent }),
       // used by RabbitMQ but not sent to consumers
-      ...options.blindCarbonCopy && {BCC: options.blindCarbonCopy},
-      ...options.mandatory && {mandatory: options.mandatory},
+      ...(options.blindCarbonCopy && { BCC: options.blindCarbonCopy }),
+      ...(options.mandatory && { mandatory: options.mandatory }),
       // ignored by RabbitMQ but may be useful for consumers
-      ...options.contentType && {contentType: options.contentType},
-      ...options.contentEncoding && {contentEncoding: options.contentEncoding},
-      ...options.headers && {headers: options.headers},
-      ...options.correlationId && {correlationId: options.correlationId},
-      ...options.replyTo && {replyTo: options.replyTo},
-      ...options.messageId && {messageId: options.messageId},
-      ...options.timestamp && {timestamp: options.timestamp},
-      ...options.type && {type: options.type},
-      ...options.applicationId && {appId: options.applicationId}
+      ...(options.contentType && { contentType: options.contentType }),
+      ...(options.contentEncoding && {
+        contentEncoding: options.contentEncoding
+      }),
+      ...(options.headers && { headers: options.headers }),
+      ...(options.correlationId && { correlationId: options.correlationId }),
+      ...(options.replyTo && { replyTo: options.replyTo }),
+      ...(options.messageId && { messageId: options.messageId }),
+      ...(options.timestamp && { timestamp: options.timestamp }),
+      ...(options.type && { type: options.type }),
+      ...(options.applicationId && { appId: options.applicationId })
     }
   }
 
-  _createBuffer (message) {
+  _createBuffer(message) {
     switch (typeof message) {
       case 'object':
         return {
           buffer: Buffer.from(JSON.stringify(message)),
           contentType: 'application/json'
         }
-          
+
       case 'string':
         return {
           buffer: Buffer.from(message),
@@ -248,11 +265,11 @@ class Sender {
 }
 
 class Queues {
-  constructor () {
+  constructor() {
     this.queues = new Map()
   }
-  
-  async obtain (channel, group, options) {
+
+  async obtain(channel, group, options) {
     let queue = group && this.queues.get(group)
     if (!queue) {
       let queueOptions = this._parseGroupOptions(options)
@@ -262,45 +279,52 @@ class Queues {
     return queue
   }
 
-  _parseGroupOptions (options) {
+  _parseGroupOptions(options) {
     return {
-      ...options.exclusive && {exclusive: options.exclusive},
-      ...options.durable && {durable: options.durable},
-      ...options.autoDelete && {autoDelete: options.autoDelete},
-      ...options.arguments && {arguments: options.arguments},
-      ...options.timeToLive && {messageTtl: options.timeToLive},
-      ...options.expires && {expires: options.expires},
-      ...options.deadLetterExchange && {deadLetterExchange: options.deadLetterExchange},
-      ...options.maxLength && {maxLength: options.maxLength},
-      ...options.maxPriority && {maxPriority: options.maxPriority}
+      ...(options.exclusive && { exclusive: options.exclusive }),
+      ...(options.durable && { durable: options.durable }),
+      ...(options.autoDelete && { autoDelete: options.autoDelete }),
+      ...(options.arguments && { arguments: options.arguments }),
+      ...(options.timeToLive && { messageTtl: options.timeToLive }),
+      ...(options.expires && { expires: options.expires }),
+      ...(options.deadLetterExchange && {
+        deadLetterExchange: options.deadLetterExchange
+      }),
+      ...(options.maxLength && { maxLength: options.maxLength }),
+      ...(options.maxPriority && { maxPriority: options.maxPriority })
     }
   }
 }
 
 class Receiver {
-  async subscribe (channel, queue, callback, options) {
+  async subscribe(channel, queue, callback, options) {
     let consumeOptions = this._parseConsumeOptions(options)
-    await channel.consume(queue, (message) => {
-      if (message) {
-        let content = message.content.toString()
-        let contentType = message && message.properties && message.properties.contentType
-        if (contentType === 'application/json') {
-          content = JSON.parse(content)
+    await channel.consume(
+      queue,
+      (message) => {
+        if (message) {
+          let content = message.content.toString()
+          let contentType =
+            message && message.properties && message.properties.contentType
+          if (contentType === 'application/json') {
+            content = JSON.parse(content)
+          }
+          callback(content, message.fields, message.properties)
         }
-        callback(content, message.fields, message.properties)
-      }
-    }, consumeOptions)
+      },
+      consumeOptions
+    )
     return true
   }
 
-  _parseConsumeOptions (options) {
+  _parseConsumeOptions(options) {
     return {
-      ...options.consumerTag && {consumerTag: options.consumerTag},
-      ...options.noLocal && {noLocal: options.noLocal},
-      ...options.noAck && {noAck: options.noAck},
-      ...options.exclusive && {exclusive: options.exclusive},
-      ...options.priority && {priority: options.priority},
-      ...options.arguments && {arguments: options.arguments}
+      ...(options.consumerTag && { consumerTag: options.consumerTag }),
+      ...(options.noLocal && { noLocal: options.noLocal }),
+      ...(options.noAck && { noAck: options.noAck }),
+      ...(options.exclusive && { exclusive: options.exclusive }),
+      ...(options.priority && { priority: options.priority }),
+      ...(options.arguments && { arguments: options.arguments })
     }
   }
 }

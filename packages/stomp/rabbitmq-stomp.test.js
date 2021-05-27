@@ -1,7 +1,6 @@
 const RabbitmqStomp = require('./rabbitmq-stomp.js')
 
 describe('connections', () => {
-
   it('exists', async () => {
     let instance = await new RabbitmqStomp()
     expect(instance).toBeDefined()
@@ -101,5 +100,4 @@ describe('consumers', () => {
     })
     instance.publish('amq.topic', 'example.topic', 'Test Message')
   })
-
 })
