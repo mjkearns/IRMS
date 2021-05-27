@@ -16,6 +16,8 @@
   "author": "ATS",
   "license": "",
   "devDependencies": {
+    "eslint": "^7.27.0",
+    "eslint-config-prettier": "^8.3.0",
     "husky": "^6.0.0",
     "lerna": "^4.0.0",
     "lint-staged": "^11.0.0",
@@ -28,5 +30,21 @@
   },
   "lint-staged": {
     "**/*": "prettier --write --ignore-unknown"
+  },
+  "eslintConfig": {
+    "env": {
+      "browser": true,
+      "node": true,
+      "es2021": true
+    },
+    "parserOptions": {
+      "ecmaVersion": 12,
+      "sourceType": "module"
+    },
+    "rules": {},
+    "extends": [
+      "eslint:recommended",
+      "prettier"
+    ]
   }
 }

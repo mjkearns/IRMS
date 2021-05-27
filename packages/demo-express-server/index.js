@@ -14,9 +14,3 @@ app.listen(port, (err) => {
     console.log('Listening')
   }
 })
-
-function test() {
-  setTimeout((x) => {
-    console.log('hello')
-  }, 100)
-}
