@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "prepare": "husky install",
     "start": "lerna run start",
     "test": "lerna run test",
     "new-version": "lerna version --conventional-commits",
@@ -15,12 +16,17 @@
   "author": "ATS",
   "license": "",
   "devDependencies": {
+    "husky": "^6.0.0",
     "lerna": "^4.0.0",
+    "lint-staged": "^11.0.0",
     "prettier": "2.3.0"
   },
   "prettier": {
     "trailingComma": "none",
     "semi": false,
     "singleQuote": true
+  },
+  "lint-staged": {
+    "**/*": "prettier --write --ignore-unknown"
   }
 }

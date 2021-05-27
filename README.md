@@ -81,3 +81,37 @@ npx prettier --check .
 ```
 
 Note: care may be required if different projects use different Prettier versions (i.e. Prettier installed in project folder as well) - as the formatting rules may differ!
+
+# HUSKY - Git Hooks
+
+Husky (https://typicode.github.io/husky/#/) provides git hooks to allow linting, testing etc when you commit or push changes to the repository.
+
+Husky should automatically hook into git when doing an 'npm install' on initially pulling down the repository.
+
+Currently Husky adds a pre-commit hook, that runs lint-staged - which is controlled by the package.json to run prettier on staged files.
+
+## Managing Hooks
+
+```
+# this will update .husky/pre-commit with an additional command to run
+npx husky add .husky/pre-commit "< command to run >"
+```
+
+Another entry point for running commands on staged files is to modify the package.json "lint-staged" property.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Other possible git hook entry points include: applypatch, commit-msg, post-update, pre-applypatch, pre-commit, prepare-commit-msg, pre-push, pre-rebase, update
