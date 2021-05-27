@@ -1,7 +1,6 @@
-# IRMS - Intelligent Range Management System #
+# IRMS - Intelligent Range Management System
 
 # Basic Structure
-
 
 # LERNA - Tool for managing JavaScript projects
 
@@ -18,6 +17,7 @@ During development use the typical NPM commands to install production and develo
 You do NOT push your node_modules up with your changes, by default the .gitignore rules should prevent this.
 
 When you pull down changes, you may need to update your node modules, this can be done by running from the root repository folder:
+
 ```
 npm run bootstrap
 ```
@@ -35,6 +35,7 @@ npx lerna bootstrap --hoist
 ```
 
 NPM shortcuts have been added to the root level package.json to do these commands for you, from the root directory of the repository:
+
 ```
 # this will clean and bootstrap everything for you
 npm bootstrap
@@ -55,8 +56,28 @@ npx lerna run start
 ```
 
 Again there are NPM shortcuts for this in the root package.json:
+
 ```
 npm run test
 npm run start
 ```
 
+# PRETTIER - Opinionated Code Formatter
+
+Prettier (prettier.io) provides code formatting based on a standard set of rules.
+
+The VSCode plugin for this is 'prettier-vscode "Prettier - Code Formatter"'.
+
+There are plugins available for other editors. It is strongly suggested you ensure the VSCode formats the files on save - this is set by default for VSCode in this repository (.vscode/settings.json).
+
+## Manual Commands
+
+```
+# format and write the changes
+npx prettier --write .
+
+# check files pass formatting
+npx prettier --check .
+```
+
+Note: care may be required if different projects use different Prettier versions (i.e. Prettier installed in project folder as well) - as the formatting rules may differ!
