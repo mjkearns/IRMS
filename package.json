@@ -19,6 +19,7 @@
     "prettier": "2.3.0"
   },
   "prettier": {
+    "trailingComma": "none",
     "semi": false,
     "singleQuote": true
   }

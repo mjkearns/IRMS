@@ -26,7 +26,7 @@ const TerrainGrid = require('./process-terrain')
 
 let model = require('./majura-mtr-terrain.json')
 
-function manual () {
+function manual() {
   let terrain = new TerrainGrid()
 
   let ok = terrain.validateModel(model)
@@ -55,7 +55,7 @@ function manual () {
   fs.writeFileSync('example-manual.svg', svg)
 }
 
-function auto () {
+function auto() {
   // let the class do all the steps
   let terrain = new TerrainGrid(model)
 

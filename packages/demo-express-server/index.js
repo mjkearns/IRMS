@@ -1,7 +1,7 @@
 const express = require('express')
 
 const port = 5001
-const app = express();
+const app = express()
 
 app.get('/', (req, res) => {
   res.send('I am an express server')
@@ -14,3 +14,9 @@ app.listen(port, (err) => {
     console.log('Listening')
   }
 })
+
+function test() {
+  setTimeout((x) => {
+    console.log('hello')
+  }, 100)
+}
