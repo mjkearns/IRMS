@@ -1,0 +1,16 @@
+{
+  "name": "aros-shot-importer",
+  "version": "1.0.0",
+  "description": "",
+  "main": "aros-shot-importer.js",
+  "dependencies": {
+    "amqplib": "^0.8.0",
+    "mysql2": "^2.2.5"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
