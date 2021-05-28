@@ -1,18 +1,14 @@
 {
-  "name": "terrain-model",
+  "name": "shared-package-test",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "jest --watchAll",
-    "run": "node example.js"
+    "run": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
   "author": "",
   "license": "ISC",
-  "devDependencies": {
-    "jest": "^26.6.3"
-  },
   "dependencies": {
     "@ats-irms/message-system-rabbitmq": "^1.0.0"
   }

@@ -4,10 +4,10 @@
   "description": "",
   "main": "aros-shot-importer.js",
   "dependencies": {
+    "@ats-irms/message-system-rabbitmq": "^1.0.0",
     "amqplib": "^0.8.0",
     "mysql2": "^2.2.5"
   },
-  "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
