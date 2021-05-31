@@ -1,9 +1,9 @@
 const readline = require('readline')
-const MessageSystem = require('../message-system-rabbitmq/message-system-rabbitmq')
+const MessageSystem = require('@ats-irms/message-system-rabbitmq')
 const MySqlHelper = require('./my-sql-helper')
 const Shot = require('./shot-model')
 
-var queueConfig = {
+const queueConfig = {
   host: 'localhost:5672',
   pipeId: null,
   group: 'shots',
@@ -11,28 +11,28 @@ var queueConfig = {
   subscribeTopic: 'shot.exporter.'
 }
 
-var databaseConfig = {
+const databaseConfig = {
   host: 'localhost',
   user: 'root',
   password: 'dev',
-  database: 'GarstenDB'
+  database: 'Crib2020DB_CRiBQuads1By10'
 }
 
-var moduleConfig = {
+const moduleConfig = {
   batchSize: 100,
-  queryInterval: 60000,
+  queryInterval: 20000,
   laneBaseNumber: 0
 }
 
-var messageSystem = null
-var sqlHelper = new MySqlHelper(
+let messageSystem = null
+const sqlHelper = new MySqlHelper(
   databaseConfig.host,
   databaseConfig.user,
   databaseConfig.password,
   databaseConfig.database
 )
-var lastShotId = 0
-var queryTimer = null
+let lastShotId = 0
+let queryTimer = null
 
 async function run() {
   // connect to message queue
@@ -69,7 +69,7 @@ function getSource() {
 }
 
 async function handleMessage(message, fields, properties) {
-  //console.log('Received: ' + JSON.stringify(message))
+  // console.log('Received: ' + JSON.stringify(message))
   switch (fields.routingKey) {
     case 'shot.exporter.ready':
       if (message.source === null || message.source === getSource()) {
@@ -81,19 +81,19 @@ async function handleMessage(message, fields, properties) {
 }
 
 async function processBatch() {
-  let rows = await sqlHelper.select(
+  const rows = await sqlHelper.select(
     'SELECT SequenceNo, XPos, YPos, Lane, Bank, TimeStamp FROM ShotDetails WHERE SequenceNo > ' +
       lastShotId +
       ' LIMIT ' +
       moduleConfig.batchSize
   )
-  let shots = []
+  const shots = []
   rows.forEach((row) => {
-    let shot = new Shot()
+    const shot = new Shot()
     shot.id = row.SequenceNo
     shot.x = row.XPos
     shot.y = row.YPos
-    shot.lane = modeulConfig.laneBaseNumber + row.Lane
+    shot.lane = moduleConfig.laneBaseNumber + row.Lane
     shot.bank = row.Bank
     shot.timestamp = row.TimeStamp
     shot.source = getSource()
@@ -118,7 +118,7 @@ async function processBatch() {
 
 function waitForInput() {
   // show prompt
-  let rl = readline.createInterface(process.stdin, process.stdout)
+  const rl = readline.createInterface(process.stdin, process.stdout)
   rl.setPrompt('aros-shot-importer is running \n> ')
   rl.prompt()
 
@@ -134,7 +134,7 @@ function waitForInput() {
 async function connect() {
   messageSystem = await new MessageSystem(queueConfig.host)
   if (!messageSystem.connector) {
-    throw 'aros-shot-importer is unable to connect to message queue.'
+    throw new Error('aros-shot-importer is unable to connect to message queue.')
   }
 }
 
