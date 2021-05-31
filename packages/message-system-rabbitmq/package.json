@@ -1,11 +1,11 @@
 {
-  "name": "queue-rabbitmq",
+  "name": "@ats-irms/message-system-rabbitmq",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
     "test": "./unit-test.sh",
-    "run": "node index.js"
+    "run": "node example.js"
   },
   "keywords": [],
   "author": "",
