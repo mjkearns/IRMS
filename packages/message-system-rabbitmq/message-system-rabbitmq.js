@@ -1,5 +1,6 @@
 const amqp = require('amqplib')
-
+const EventEmitter = require('events')
+const uuid = require('uuid')
 class Connection {
   constructor(host, options) {
     this.connector = null
@@ -115,6 +116,24 @@ class Connection {
     }
     return false
   }
+
+  async fetch(pipeId, group, message, options = {}) {
+    try {
+      return await this.pipes.fetch(pipeId, group, message, options)
+    } catch (e) {
+      this.lastError = e
+    }
+    return false
+  }
+
+  async listen(pipeId, group, callback, options = {}) {
+    try {
+      return await this.pipes.listen(pipeId, group, callback, options)
+    } catch (e) {
+      this.lastError = e
+    }
+    return false
+  }
 }
 
 class Pipes {
@@ -126,12 +145,14 @@ class Pipes {
     if (connector) {
       const channel = await connector.createChannel()
       const pipeId = ++Pipes.idCounter
+      const encoderDecoder = new EncoderDecoder()
       this.pipes.set(pipeId, {
         channel,
         exchanges: new Exchanges(),
-        sender: new Sender(),
+        sender: new Sender(encoderDecoder),
         queues: new Queues(),
-        receiver: new Receiver()
+        receiver: new Receiver(encoderDecoder),
+        requestResponse: new RequestResponse(encoderDecoder)
       })
       return pipeId
     }
@@ -176,6 +197,36 @@ class Pipes {
 
     return pipe.receiver.subscribe(pipe.channel, queue.queue, callback, options)
   }
+
+  async fetch(id, group, message, options) {
+    const pipe = this.pipes.get(id || 1)
+    if (!pipe || !pipe.channel) {
+      return false
+    }
+
+    return await pipe.requestResponse.fetch(
+      pipe.channel,
+      group,
+      message,
+      options
+    )
+  }
+
+  async listen(id, group, callback, options) {
+    const pipe = this.pipes.get(id || 1)
+    if (!pipe || !pipe.channel) {
+      return false
+    }
+
+    await pipe.queues.obtainDirect(pipe.channel, group, options)
+
+    return await pipe.requestResponse.listen(
+      pipe.channel,
+      group,
+      callback,
+      options
+    )
+  }
 }
 
 Pipes.idCounter = 0
@@ -205,10 +256,14 @@ class Exchanges {
 }
 
 class Sender {
+  constructor(encoderDecoder) {
+    this.encoderDecoder = encoderDecoder
+  }
+
   async publish(channel, group, topic, message, options) {
     if (channel) {
       const publishOptions = this._parsePublishOptions(options)
-      const buffer = this._createBuffer(message)
+      const buffer = this.encoderDecoder.createBuffer(message)
       if (buffer) {
         publishOptions.contentType = buffer.contentType
         await channel.publish(group, topic, buffer.buffer, publishOptions)
@@ -240,8 +295,173 @@ class Sender {
       ...(options.applicationId && { appId: options.applicationId })
     }
   }
+}
 
-  _createBuffer(message) {
+class Queues {
+  constructor() {
+    this.queues = new Map()
+    this.direct = new Map()
+  }
+
+  async obtain(channel, group, options) {
+    let queue = group && this.queues.get(group)
+    if (!queue) {
+      const queueOptions = this._parseQueueOptions(options)
+      queue = await channel.assertQueue('', queueOptions)
+      this.queues.set(group, queue)
+    }
+    return queue
+  }
+
+  async obtainDirect(channel, group, options) {
+    let direct = group && this.direct.get(group)
+    if (!direct) {
+      const queueOptions = this._parseQueueOptions(options)
+      direct = await channel.assertQueue(group, queueOptions)
+      this.queues.set(group, direct)
+    }
+    return direct
+  }
+
+  _parseQueueOptions(options) {
+    return {
+      ...(options.exclusive && { exclusive: options.exclusive }),
+      ...(options.durable && { durable: options.durable }),
+      ...(options.autoDelete && { autoDelete: options.autoDelete }),
+      ...(options.arguments && { arguments: options.arguments }),
+      ...(options.timeToLive && { messageTtl: options.timeToLive }),
+      ...(options.expires && { expires: options.expires }),
+      ...(options.deadLetterExchange && {
+        deadLetterExchange: options.deadLetterExchange
+      }),
+      ...(options.maxLength && { maxLength: options.maxLength }),
+      ...(options.maxPriority && { maxPriority: options.maxPriority })
+    }
+  }
+}
+
+class Receiver {
+  constructor(encoderDecoder) {
+    this.encoderDecoder = encoderDecoder
+  }
+
+  async subscribe(channel, queue, callback, options) {
+    const consumeOptions = this._parseConsumeOptions(options)
+    await channel.consume(
+      queue,
+      (message) => {
+        if (message) {
+          const content = this.encoderDecoder.decodeMessageContent(message)
+          callback(content, message.fields, message.properties)
+        }
+      },
+      consumeOptions
+    )
+    return true
+  }
+
+  _parseConsumeOptions(options) {
+    return {
+      ...(options.consumerTag && { consumerTag: options.consumerTag }),
+      ...(options.noLocal && { noLocal: options.noLocal }),
+      ...(options.noAck && { noAck: options.noAck }),
+      ...(options.exclusive && { exclusive: options.exclusive }),
+      ...(options.priority && { priority: options.priority }),
+      ...(options.arguments && { arguments: options.arguments })
+    }
+  }
+}
+
+class RequestResponse {
+  constructor(encoderDecoder) {
+    this.encoderDecoder = encoderDecoder
+    this.eventEmitter = new EventEmitter()
+    this.fetchConsumer = null
+  }
+
+  async fetch(channel, group, message, options) {
+    this._applyFetchConsumer(channel)
+    return new Promise((resolve) => {
+      const fetchId = this._addFetchEmitter(resolve, options)
+      const sendOptions = this._parseSendOptions(options, fetchId)
+      const buffer = this.encoderDecoder.createBuffer(message)
+      if (buffer) {
+        sendOptions.contentType = buffer.contentType
+        channel.sendToQueue(group, buffer.buffer, sendOptions)
+      }
+    })
+  }
+
+  _applyFetchConsumer(channel) {
+    if (this.fetchConsumer) return
+
+    this.fetchConsumer = channel.consume(
+      'amq.rabbitmq.reply-to',
+      (message) => {
+        if (message) {
+          const content = this.encoderDecoder.decodeMessageContent(message)
+          const fetchId = message.properties.correlationId
+          this.eventEmitter.emit(fetchId, {
+            content,
+            fields: message.fields,
+            properties: message.properties
+          })
+        }
+      },
+      { noAck: true }
+    )
+  }
+
+  _addFetchEmitter(resolve, options) {
+    const timer = this._createTimer(resolve, options.timeout)
+    const fetchId = uuid.v4()
+    this.eventEmitter.once(fetchId, (data) => {
+      clearTimeout(timer)
+      resolve(data)
+    })
+    return fetchId
+  }
+
+  _createTimer(resolve, timeout) {
+    return !timeout
+      ? null
+      : setTimeout(() => {
+          resolve(false)
+        }, timeout)
+  }
+
+  _parseSendOptions(options, fetchId) {
+    return {
+      ...(options.consumerTag && { consumerTag: options.consumerTag }),
+      ...(options.noLocal && { noLocal: options.noLocal }),
+      ...(options.noAck && { noAck: options.noAck }),
+      ...(options.exclusive && { exclusive: options.exclusive }),
+      ...(options.priority && { priority: options.priority }),
+      ...(options.arguments && { arguments: options.arguments }),
+      correlationId: fetchId,
+      replyTo: 'amq.rabbitmq.reply-to'
+    }
+  }
+
+  async listen(channel, group, callback, options) {
+    await channel.consume(group, async (message) => {
+      if (message) {
+        const content = this.encoderDecoder.decodeMessageContent(message)
+        const result = callback(content, message.fields, message.properties)
+        const buffer = this.encoderDecoder.createBuffer(result)
+        await channel.sendToQueue(message.properties.replyTo, buffer.buffer, {
+          correlationId: message.properties.correlationId,
+          contentType: buffer.contentType
+        })
+        channel.ack(message)
+      }
+    })
+    return true
+  }
+}
+
+class EncoderDecoder {
+  createBuffer(message) {
     switch (typeof message) {
       case 'object':
         return {
@@ -263,70 +483,15 @@ class Sender {
         return false
     }
   }
-}
 
-class Queues {
-  constructor() {
-    this.queues = new Map()
-  }
-
-  async obtain(channel, group, options) {
-    let queue = group && this.queues.get(group)
-    if (!queue) {
-      const queueOptions = this._parseGroupOptions(options)
-      queue = await channel.assertQueue('', queueOptions)
-      this.queues.set(queue.queue, queue)
+  decodeMessageContent(message) {
+    let content = message.content.toString()
+    const contentType =
+      message && message.properties && message.properties.contentType
+    if (contentType === 'application/json') {
+      content = JSON.parse(content)
     }
-    return queue
-  }
-
-  _parseGroupOptions(options) {
-    return {
-      ...(options.exclusive && { exclusive: options.exclusive }),
-      ...(options.durable && { durable: options.durable }),
-      ...(options.autoDelete && { autoDelete: options.autoDelete }),
-      ...(options.arguments && { arguments: options.arguments }),
-      ...(options.timeToLive && { messageTtl: options.timeToLive }),
-      ...(options.expires && { expires: options.expires }),
-      ...(options.deadLetterExchange && {
-        deadLetterExchange: options.deadLetterExchange
-      }),
-      ...(options.maxLength && { maxLength: options.maxLength }),
-      ...(options.maxPriority && { maxPriority: options.maxPriority })
-    }
-  }
-}
-
-class Receiver {
-  async subscribe(channel, queue, callback, options) {
-    const consumeOptions = this._parseConsumeOptions(options)
-    await channel.consume(
-      queue,
-      (message) => {
-        if (message) {
-          let content = message.content.toString()
-          const contentType =
-            message && message.properties && message.properties.contentType
-          if (contentType === 'application/json') {
-            content = JSON.parse(content)
-          }
-          callback(content, message.fields, message.properties)
-        }
-      },
-      consumeOptions
-    )
-    return true
-  }
-
-  _parseConsumeOptions(options) {
-    return {
-      ...(options.consumerTag && { consumerTag: options.consumerTag }),
-      ...(options.noLocal && { noLocal: options.noLocal }),
-      ...(options.noAck && { noAck: options.noAck }),
-      ...(options.exclusive && { exclusive: options.exclusive }),
-      ...(options.priority && { priority: options.priority }),
-      ...(options.arguments && { arguments: options.arguments })
-    }
+    return content
   }
 }
 
