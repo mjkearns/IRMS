@@ -27,4 +27,23 @@ describe('', () => {
       })
     expect(majuraDEM).toBeDefined()
   })
+  it('get location height', async () => {
+    expect.assertions(4)
+    geotiff
+      .getHeight(majuraDEM, 701770.3174384605, 6096810.844646253)
+      .then((height) => {
+        expect(height).toEqual(643.438)
+      })
+    geotiff
+      .getHeight(majuraDEM, 701774.8637818306, 6096710.283639116)
+      .then((height) => {
+        expect(height).toEqual(638.748)
+      })
+    geotiff.getHeight(majuraDEM, 701630.053, 6096130.042).then((height) => {
+      expect(height).toEqual(623.746)
+    })
+    geotiff.getHeight(majuraDEM, 701886.99, 6096815.79).then((height) => {
+      expect(height).toEqual(639.027)
+    })
+  })
 })

@@ -1,5 +1,16 @@
 const geotiff = require('geotiff')
 
+function polyfillNode() {
+  // expose on global namespace for execution within NodeJS
+
+  if (typeof TextDecoder === 'undefined') {
+    Object.assign(global, {
+      TextDecoder: require('util').TextDecoder
+    })
+  }
+}
+polyfillNode()
+
 class GeoTIFFData {
   constructor(tiffdata) {
     this.image = null
@@ -12,9 +23,7 @@ class GeoTIFFData {
   }
 
   async initialise() {
-    console.log('initialising')
     this.image = await this._tiffdata.getImage()
-    console.log('got image OK')
     this.origin = this.image.getOrigin()
     this.rasterData = await this.image.readRasters()
     const { width, height, length } = this.rasterData
@@ -30,7 +39,6 @@ class GeoTIFFData {
 const getTiffFromBuffer = async (dataBuffer, callback) => {
   try {
     const tiffdata = await geotiff.fromArrayBuffer(dataBuffer)
-    console.log('got tiff data OK')
     const tiff = new GeoTIFFData(tiffdata)
     await tiff.initialise()
     if (callback && typeof callback === 'function') {
@@ -39,7 +47,6 @@ const getTiffFromBuffer = async (dataBuffer, callback) => {
       return tiff
     }
   } catch (error) {
-    console.log('tiff error')
     if (callback && typeof callback === 'function') {
       callback(error, null)
     } else {
