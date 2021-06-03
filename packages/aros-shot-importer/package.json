@@ -9,6 +9,7 @@
     "mysql2": "^2.2.5"
   },
   "scripts": {
+    "run": "node aros-shot-importer.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",

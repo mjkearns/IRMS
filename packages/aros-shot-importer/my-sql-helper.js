@@ -25,7 +25,7 @@ class MySqlHelper {
 
   async select(sql) {
     await this.connect()
-    let [rows, fields] = await this.connection.execute(sql)
+    const [rows] = await this.connection.execute(sql)
     return rows
   }
 }
