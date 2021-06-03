@@ -56,7 +56,7 @@ const getTiffFromBuffer = async (dataBuffer, callback) => {
 }
 exports.getTiffFromBuffer = getTiffFromBuffer
 
-const getHeight = async (tiff, searchX, searchY) => {
+const getHeight = (tiff, searchX, searchY) => {
   const offsetX = Math.floor(searchX) - tiff.origin[0]
   const offsetY = tiff.origin[1] - 1 - Math.floor(searchY)
   return tiff.rasterData[0][offsetY * tiff.width + offsetX]

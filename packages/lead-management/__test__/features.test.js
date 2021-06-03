@@ -1,11 +1,12 @@
 const fs = require('fs')
-const features = require('./features')
+const Point = require('../models/point')
+const features = require('../services/features')
 
-const targetShot = { x: -0.3, y: 0, z: 0.3 }
+const targetShot = new Point(-0.3, 0, 0.3)
 
 function loadGeoJSON(GeoJSONName) {
   return new Promise((resolve, reject) => {
-    fs.readFile('./' + GeoJSONName, null, (error, data) => {
+    fs.readFile('./__test__/data/' + GeoJSONName, null, (error, data) => {
       if (error) {
         reject(error)
       } else {
