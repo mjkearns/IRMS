@@ -2,7 +2,7 @@
   "name": "lead-management",
   "version": "1.0.0",
   "description": "",
-  "main": "process-shot.js",
+  "main": "index.js",
   "scripts": {
     "test": "jest --watchAll",
     "run": "node example.js"
@@ -10,9 +10,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@ats-irms/message-system-rabbitmq": "^1.0.0",
     "dotenv": "^10.0.0",
+    "geotiff": "^1.0.4",
     "jest": "^26.6.3",
-    "mysql": "^2.18.1",
-    "@ats-irms/message-system-rabbitmq": "^1.0.0"
+    "mysql": "^2.18.1"
   }
 }
