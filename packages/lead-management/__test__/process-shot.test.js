@@ -1,16 +1,9 @@
-const shot = require('./process-shot')
+const shot = require('../services/process-shot')
+const Point = require('../models/point')
 
 const pointExamples = {
-  firingPoint: {
-    x: 701770.3174384605,
-    y: 6096810.844646253,
-    z: 643.438
-  },
-  geoShot: {
-    x: 701774.8186181592,
-    y: 6096711.282618717,
-    z: 639.0569999999999
-  }
+  firingPoint: new Point(701770.3174384605, 6096810.844646253, 643.438),
+  geoShot: new Point(701774.8186181592, 6096711.282618717, 639.0569999999999)
 }
 
 describe('', () => {

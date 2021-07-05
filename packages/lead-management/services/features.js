@@ -1,3 +1,5 @@
+const Point = require('../models/point')
+
 const getFeatureLocation = (data, featureName) => {
   const found = data.features.filter((feature) => {
     return feature.properties.targets.match(featureName)
@@ -7,7 +9,7 @@ const getFeatureLocation = (data, featureName) => {
   } else if (found.length > 1) {
     throw Error('Multiple features found for feature name ' + featureName)
   } else {
-    const location = { x: 0, y: 0 }
+    const location = new Point()
     location.x = found[0].geometry.coordinates[0]
     location.y = found[0].geometry.coordinates[1]
     return location
@@ -37,7 +39,7 @@ const calculateOffsetAngle = (data) => {
 exports.calculateOffsetAngle = calculateOffsetAngle
 
 const calculateShotAdjustment = (shotX, angle) => {
-  const adjustment = { x: 0, y: 0 }
+  const adjustment = new Point()
   adjustment.x = shotX * Math.sin(_degreesToRadians(90 - angle))
   adjustment.y = 0 - shotX * Math.sin(_degreesToRadians(angle))
   return adjustment

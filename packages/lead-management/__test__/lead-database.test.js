@@ -1,5 +1,5 @@
-const LeadDatabase = require('./lead-database')
-const Settings = require('./settings')
+const LeadDatabase = require('../services/lead-database')
+const Settings = require('../settings')
 
 const examples = {
   modelOne: {

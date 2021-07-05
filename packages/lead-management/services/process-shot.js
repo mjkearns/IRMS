@@ -1,5 +1,7 @@
+const Point = require('../models/point')
+
 const calculateOffsetPoint = (originPoint, shotPoint, distanceOffset) => {
-  const offsetPoint = { x: 0, y: 0, z: 0 }
+  const offsetPoint = new Point()
   const xChange = originPoint.x - shotPoint.x
   const yChange = originPoint.y - shotPoint.y
   const zChange = originPoint.z - shotPoint.z
