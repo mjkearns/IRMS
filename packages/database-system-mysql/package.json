@@ -1,0 +1,16 @@
+{
+  "name": "@ats-irms/database-system-mysql",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "run": "node index.js",
+    "test": "./__tests__/unit-test.sh"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "jest": "^27.0.3",
+    "mysql2": "^2.2.5"
+  }
+}
