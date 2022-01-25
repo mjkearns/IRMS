@@ -161,19 +161,19 @@ class RabbitmqStomp {
       return false
     }
 
-    const destination = this._parseDestination(group, topic)
-    if (!destination) {
+    const { contentType, message } = this._parseContent(data)
+    if (!contentType) {
       return false
     }
 
-    const content = this._parseContent(data)
-    const headers = this._parseHeaders(content.contentType, options)
+    message.destination = this._parseDestination(group, topic)
+    if (!message.destination) {
+      return false
+    }
 
-    this.client.publish({
-      destination,
-      headers,
-      body: content.body
-    })
+    message.headers = this._parseHeaders(contentType, options)
+
+    this.client.publish(message)
     return true
   }
 
@@ -197,24 +197,41 @@ class RabbitmqStomp {
   }
 
   _parseContent(data) {
+    if (data instanceof Uint8Array) {
+      return {
+        message: {
+          binaryBody: data
+        },
+        contentType: 'application/octet-stream'
+      }
+    }
     switch (typeof data) {
       case 'object':
         return {
-          body: JSON.stringify(data),
+          message: {
+            body: JSON.stringify(data)
+          },
           contentType: 'application/json'
         }
       case 'string':
         return {
-          body: data,
+          message: {
+            body: data
+          },
           contentType: 'text/plain'
         }
       case 'number':
         return {
-          body: String(data),
+          message: {
+            body: String(data)
+          },
           contentType: 'text/plain'
         }
       default:
-        return false
+        return {
+          message: false,
+          contentType: false
+        }
     }
   }
 
@@ -238,7 +255,9 @@ class RabbitmqStomp {
       let content = frame.body
       const contentType =
         frame && frame.headers && frame.headers['content-type']
-      if (contentType === 'application/json') {
+      if (contentType === 'application/octet-stream') {
+        content = frame.binaryBody
+      } else if (contentType === 'application/json') {
         content = JSON.parse(content)
       }
 
