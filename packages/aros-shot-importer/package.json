@@ -1,5 +1,5 @@
 {
-  "name": "aros-shot-importer",
+  "name": "@ats-irms/aros-shot-importer",
   "version": "1.0.0",
   "description": "",
   "main": "aros-shot-importer.js",

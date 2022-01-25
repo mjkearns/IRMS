@@ -1,6 +1,6 @@
 {
-  "name": "terrain-model",
-  "version": "1.0.0",
+  "name": "@ats-irms/terrain-model",
+  "version": "1.0.1",
   "description": "",
   "main": "index.js",
   "scripts": {
