@@ -1,0 +1,25 @@
+version: '3.2'
+services:
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: rabbitmq
+    restart: always
+    ports:
+      # amqp 0.9.1 / 1.0
+      - '5672:5672'
+      - '5671:5671'
+      # http api (management ui http://localhost:15672/)
+      - '15672:15672'
+      # stomp over websockets
+      - '15674:15674'
+      # mqtt
+      - '1883:1883'
+      - '8883:8883'
+    volumes:
+      - ./rabbitmq/rabbitmq.config:/etc/rabbitmq/rabbitmq.config:ro
+      - ./rabbitmq/enabled_plugins:/etc/rabbitmq/enabled_plugins:ro
+      - ./rabbitmq/log:/var/log/rabbitmq
+      - ./rabbitmq/data:/var/lib/rabbitmq
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
