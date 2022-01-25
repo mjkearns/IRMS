@@ -46,14 +46,23 @@ describe('producers', () => {
   })
 
   it('publish string', () => {
-    const ok = instance.publish('amq.topic', 'example.topic', 'HELLO WORLD')
+    const str = 'HELLO WORLD'
+    const ok = instance.publish('amq.topic', 'example.topic', str)
     expect(ok).toBe(true)
   })
 
   it('publish object', () => {
-    const ok = instance.publish('amq.topic', 'example.topic', {
-      data: 'HELLO WORLD'
-    })
+    const obj = {
+      data: 'HELLO WORLD',
+      data2: 1234
+    }
+    const ok = instance.publish('amq.topic', 'example.topic', obj)
+    expect(ok).toBe(true)
+  })
+
+  it('publish binary', () => {
+    const bin = new Uint8Array([0x00, 0xff, 0x10, 0x20, 0x30, 0x40, 0x50])
+    const ok = instance.publish('amq.topic', 'example.topic', bin)
     expect(ok).toBe(true)
   })
 })
@@ -76,21 +85,36 @@ describe('consumers', () => {
   })
 
   it('receive string', async (done) => {
+    const str = 'Test Message'
     instance.subscribe('amq.topic', 'example.topic', (message) => {
-      expect(message).toBe('Test Message')
+      expect(message).toBe(str)
       done()
     })
-    instance.publish('amq.topic', 'example.topic', 'Test Message')
+    instance.publish('amq.topic', 'example.topic', str)
   })
 
   it('receive object', async (done) => {
+    const obj = {
+      data: 'HELLO WORLD',
+      data2: 1234
+    }
     instance.subscribe('amq.topic', 'example.topic', (message) => {
-      expect(message).toEqual({ data: 'Test Message' })
+      expect(message).toEqual({ data: obj })
       done()
     })
     instance.publish('amq.topic', 'example.topic', {
-      data: 'Test Message'
+      data: obj
     })
+  })
+
+  it('receive binary', async (done) => {
+    const bin = new Uint8Array([0x00, 0xff, 0x10, 0x20, 0x30, 0x40, 0x50])
+
+    instance.subscribe('amq.topic', 'example.topic', (message) => {
+      expect(message).toEqual(bin)
+      done()
+    })
+    instance.publish('amq.topic', 'example.topic', bin)
   })
 
   it('receive on wildcard subscription', async (done) => {
