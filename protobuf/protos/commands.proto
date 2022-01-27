@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package ats.base;
+
+message Commands {
+  enum CommandType {
+    UNKNOWN = 0;
+    UP = 1;
+    DOWN = 2;
+  }
+  repeated CommandType commands = 1;
+
+  repeated int64 ids = 2;
+}
