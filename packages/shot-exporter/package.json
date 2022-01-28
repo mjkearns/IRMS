@@ -1,6 +1,6 @@
 {
-  "name": "shot-exporter",
-  "version": "1.0.0",
+  "name": "@ats-irms/shot-exporter",
+  "version": "1.0.1",
   "description": "",
   "main": "shot-exporter.js",
   "scripts": {

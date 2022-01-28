@@ -1,6 +1,6 @@
 {
-  "name": "shared-package-test",
-  "version": "1.0.0",
+  "name": "@ats-irms/shared-package-test",
+  "version": "1.0.1",
   "description": "",
   "main": "index.js",
   "scripts": {

@@ -1,9 +1,9 @@
 {
-  "name": "@ats/event-aggregator",
-  "version": "1.0.0",
+  "name": "@ats-irms/irms",
+  "version": "1.0.1",
   "description": "",
   "main": "index.js",
-  "repository": "gitlab:ats-engineering/event-aggregator",
+  "repository": "gitlab:ats-engineering/irms",
   "scripts": {
     "prepare": "husky install",
     "start": "lerna run start",
