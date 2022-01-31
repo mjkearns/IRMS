@@ -1,7 +1,21 @@
 #!/bin/sh
 
 echo "Using docker compose to setup sandbox development environment:"
+if [ ! -d "rabbitmq/log" ]; then
+    echo "Creating rabbitmq log directory..."
+    mkdir -p rabbitmq/log
+fi
+if [ ! -w "rabbitmq/log" ] || [ ! -k "rabbitmq/log" ]; then
+    echo "Setting world-writable + sticky bit on rabbitmq log directory..."
+    sudo chmod a+tw rabbitmq/log
+fi
+
 docker-compose up -d
+
+if [ ! "$?" = "0" ]; then
+    echo "Could not start RabbitMQ sandbox container, exiting..."
+    exit 1
+fi
 echo "  Done"
 
 echo -n "Waiting for RabbitMQ Container: "
