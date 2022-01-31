@@ -1,0 +1,14 @@
+{
+  "name": "@ats-irms/target-control-basic",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "./__test__/unit-test.sh"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@stomp/stompjs": "^6.1.2"
+  }
+}
