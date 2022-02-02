@@ -1,21 +1,53 @@
-require('net').createServer().listen() // Keep alive
+// require('net').createServer().listen() // Keep alive
 
 const RabbitmqStomp = require('@ats-irms/stomp-rabbitmq/rabbitmq-stomp')
 const readline = require('readline')
 
-const CommandsProtobuf = require('./commands_pb')
+const CommandsProtobuf = require('./proto/commands_pb')
 const CommandsMessage = CommandsProtobuf.ats.base.Commands
 const CommandTypes = CommandsMessage.CommandType
 
 const { isUint8Array } = require('util/types')
 const TcpConnectorStub = require('./tcp-connector-stub')
 
+const runOptions = {
+  debug: false,
+  test: false
+}
+
+let targetService = {}
+let commandline = {}
+
+const args = process.argv.slice(2)
+args.forEach(function (val, index, array) {
+  if (val === '--debug') {
+    runOptions.debug = true
+  } else if (val === '--test') {
+    runOptions.test = true
+  } else if (val === '--watch') {
+    runOptions.test = true
+  } else {
+    console.warn('Unknown command:', val)
+  }
+})
+
 class CustomXmlTargetService {
-  constructor() {
+  constructor(options = {}) {
+    this.options = {
+      debug: options.debug || false,
+      test: options.test
+    }
+    this.data = {
+      transmits: 0
+    }
     this.rabbitMqInstance = {}
-    this.tcpConnector = new TcpConnectorStub()
-    this.initialised = false
-    // Hard coded addresses and commands
+    this.tcpConnector = {}
+
+    if (this.options.test) {
+      this.tcpConnector = new TcpConnectorStub(this.options.test)
+    }
+
+    // Start: Hard coded addresses & commands
     this.deviceIpMap = {
       ids: [1, 2, 3, 4],
       addresses: {
@@ -32,24 +64,22 @@ class CustomXmlTargetService {
       2: { command: '<tg82><move> down </move></tg82>' }
     }
 
+    // End: hard coded addresses & commands
     this.debugPublishMessage = this._debugPublishMessage.bind(this)
     this.onDataReceive = this._onDataReceive.bind(this)
   }
 
-  static async create() {
-    const service = new CustomXmlTargetService()
+  static async create(options = {}) {
+    const service = new CustomXmlTargetService(options)
     await service.initialise()
-    service.initialised = true
     return service
   }
 
   async initialise() {
-    const options = {
-      debug: false,
-      debugStomp: false
+    this.rabbitMqInstance = await new RabbitmqStomp('localhost:15674')
+    if (this.options.debug === true) {
+      console.log('Connected = ', this.rabbitMqInstance.connected)
     }
-    this.rabbitMqInstance = await new RabbitmqStomp('localhost:15674', options)
-    console.log('Connected = ', this.rabbitMqInstance.connected)
 
     if (this.rabbitMqInstance.connected === true) {
       this.rabbitMqInstance.subscribe(
@@ -76,10 +106,12 @@ class CustomXmlTargetService {
     )
 
     if (invalidTargetIds.length) {
-      console.log(
-        'Could not find the following devices: ',
-        invalidTargetIds.toString()
-      )
+      if (this.options.debug) {
+        console.log(
+          'Could not find the following devices: ',
+          invalidTargetIds.toString()
+        )
+      }
     }
     return knownTargetIds
   }
@@ -89,14 +121,18 @@ class CustomXmlTargetService {
     const knownCommands = []
     for (const i of targetCommands) {
       if (i === CommandTypes.UNKNOWN) {
-        console.log('Command type is Unknown, skipping...')
+        if (this.options.debug) {
+          console.log('Command type is Unknown, skipping...')
+        }
         knownCommands.push(this.deviceCommands[i].command)
       } else if (i === CommandTypes.UP) {
         knownCommands.push(this.deviceCommands[i].command)
       } else if (i === CommandTypes.DOWN) {
         knownCommands.push(this.deviceCommands[i].command)
       } else {
-        console.log('Unknown command:', i, 'skipping...')
+        if (this.options.debug) {
+          console.log('Unknown command:', i, 'skipping...')
+        }
         knownCommands.push(this.deviceCommands[0].command)
       }
     }
@@ -104,10 +140,24 @@ class CustomXmlTargetService {
   }
 
   _onDataReceive(inEncodedMessage) {
+    if (!this.tcpConnector.connected) {
+      console.log(
+        'CustomXmlTargetService: Tcp Connections have not been initialised!'
+      )
+      return false
+    }
     if (typeof inEncodedMessage === 'string') {
       this.debugPublishMessage(inEncodedMessage)
     } else if (isUint8Array(inEncodedMessage)) {
-      const decodedMessage = CommandsMessage.deserializeBinary(inEncodedMessage)
+      let decodedMessage
+      try {
+        decodedMessage = CommandsMessage.deserializeBinary(inEncodedMessage)
+      } catch (e) {
+        if (this.options.debug) {
+          console.error(e)
+        }
+        return false
+      }
 
       const targetIds = decodedMessage.getIdsList()
       const targetCommands = decodedMessage.getCommandsList()
@@ -115,38 +165,46 @@ class CustomXmlTargetService {
       const validTargetIds = this.parseIds(targetIds, targetCommands)
       const validCommands = this.parseCommands(targetCommands)
       let commandIndex = 0
+      let transmits = 0
 
       for (const id of validTargetIds) {
         const address = this.deviceIpMap.addresses[id]
         const sendCommand = validCommands[commandIndex]
-        if (sendCommand === 'Unknown') {
-          console.log('Unable to send command to', address)
+        if (sendCommand === 'Unknown' || typeof sendCommand === 'undefined') {
+          if (this.options.debug) {
+            console.log('Unable to send command to', address)
+          }
         } else {
-          this.tcpConnector.sendCommand(sendCommand, address)
+          transmits += this.tcpConnector.sendCommand(sendCommand, address)
         }
         commandIndex++
       }
+      this.data.transmits += transmits
+      return this.data.transmits !== 0
     } else {
-      console.log('Warning: encoded data is not a byte array!')
-      console.log(
-        'Received type (' + typeof inEncodedMessage + '):',
-        inEncodedMessage
-      )
+      if (this.options.debug) {
+        console.log('Warning: encoded data is not a byte array!')
+        console.log(
+          'Received type (' + typeof inEncodedMessage + '):',
+          inEncodedMessage
+        )
+      }
+      return false
     }
   }
 
   _debugPublishMessage(messageData) {
-    if (!this.initialised) {
-      console.log('CustomXmlTargetService not initialised!')
-      return
+    if (!this.rabbitMqInstance.connected) {
+      console.log('CustomXmlTargetService not connected to RabbitMq instance!')
+      return false
     }
     if (!messageData) {
       console.log('Message data empty!')
-      return
+      return false
     }
     if (typeof messageData !== 'string') {
       console.log('Message is not a string')
-      return
+      return false
     }
 
     let parsedMessage = {}
@@ -160,7 +218,7 @@ class CustomXmlTargetService {
       }
     } catch (e) {
       console.error('Failed to parse message: ', e)
-      return
+      return false
     }
 
     const decodedMessage = new CommandsMessage()
@@ -169,14 +227,14 @@ class CustomXmlTargetService {
       decodedMessage.setCommandsList(parsedMessage.commands)
     } catch (e) {
       console.error('Failed to parse commands list: ', e)
-      return
+      return false
     }
 
     try {
       decodedMessage.setIdsList(parsedMessage.ids)
     } catch (e) {
       console.error('Failed to parse ids list: ', e)
-      return
+      return false
     }
 
     try {
@@ -188,7 +246,9 @@ class CustomXmlTargetService {
       )
     } catch (e) {
       console.error(e)
+      return
     }
+    return true
   }
 }
 
@@ -198,24 +258,24 @@ if (typeof module !== 'undefined' && module.exports) {
 
 // Debug functions to send messages on command line
 
-let targetService
-
-const rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout,
-  terminal: true
-})
-
-rl.setPrompt('Enter decoded message:\n')
-
-rl.on('line', function (line) {
-  targetService.debugPublishMessage(line)
-  rl.prompt(true)
-})
-
 async function createService() {
-  targetService = await CustomXmlTargetService.create()
-  rl.prompt()
+  targetService = await CustomXmlTargetService.create(runOptions)
 }
 
-createService()
+createService().then(() => {
+  if (runOptions.debug) {
+    commandline = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout,
+      terminal: true
+    })
+
+    commandline.setPrompt('Enter decoded message:\n')
+    commandline.prompt()
+
+    commandline.on('line', function (line) {
+      targetService.debugPublishMessage(line)
+      commandline.prompt(true)
+    })
+  }
+})
