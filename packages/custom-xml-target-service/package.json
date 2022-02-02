@@ -1,10 +1,10 @@
 {
-  "name": "custom-xml-target-service",
+  "name": "@ats-irms/custom-xml-target-service",
   "version": "1.0.0",
   "description": "",
   "main": "custom-xml-target-service.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "./__tests__/unit-test.sh"
   },
   "author": "",
   "license": "ISC",
@@ -14,6 +14,7 @@
   },
   "devDependencies": {
     "@types/node": "^17.0.13",
-    "google-closure-deps": "^20220104.0.0"
+    "google-closure-deps": "^20220104.0.0",
+    "jest": "^27.4.7"
   }
 }
