@@ -1,0 +1,21 @@
+{
+  "name": "custom-xml-target-service",
+  "version": "1.0.0",
+  "description": "",
+  "main": "custom-xml-target-service.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@ats-irms/stomp-rabbitmq": "file:../stomp-rabbitmq",
+    "google-closure-library": "^20220104.0.0",
+    "google-protobuf": "^3.19.4",
+    "protobufjs": "^6.11.2"
+  },
+  "devDependencies": {
+    "@types/node": "^17.0.13",
+    "google-closure-deps": "^20220104.0.0"
+  }
+}
