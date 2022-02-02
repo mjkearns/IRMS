@@ -10,9 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "@ats-irms/stomp-rabbitmq": "file:../stomp-rabbitmq",
-    "google-closure-library": "^20220104.0.0",
-    "google-protobuf": "^3.19.4",
-    "protobufjs": "^6.11.2"
+    "google-protobuf": "^3.19.4"
   },
   "devDependencies": {
     "@types/node": "^17.0.13",
