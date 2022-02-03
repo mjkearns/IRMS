@@ -5,13 +5,12 @@ describe('poly-tg82-device-service', () => {
   const downCommandBytes = new Uint8Array([10, 2, 2, 2, 18, 2, 1, 2])
 
   it('exists', async () => {
-    const targetService = await PolyTg82DeviceService.create({
-      debug: false,
-      test: true
-    })
+    const targetService = new PolyTg82DeviceService()
     expect(targetService).toBeDefined()
-    expect(targetService.rabbitMqInstance.connected).toBeDefined()
-    expect(targetService.tcpConnector.connected).toBeDefined()
+    expect(Object.keys(targetService.rabbitMqInstance).length).toBe(0)
+    expect(Object.keys(targetService.tcpConnections).length).toBe(2)
+    expect(Object.keys(targetService.tcpConnections.connections).length).toBe(0)
+    expect(Object.keys(targetService.tcpConnections.status).length).toBe(0)
     expect(targetService.deviceIpMap).toBeDefined()
     expect(targetService.deviceCommands).toBeDefined()
     expect(targetService.onDataReceive).toBeDefined()

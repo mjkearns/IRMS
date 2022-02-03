@@ -7,6 +7,7 @@ const CommandTypes = CommandsMessage.CommandType
 
 const { isUint8Array } = require('util/types')
 const TcpConnectorStub = require('./tcp-connector-stub')
+const SimpleTcpConnector = require('simple-tcp-connector')
 
 /*
   This currently isn't a scalable solution, will need to remove hard coded IP map,
@@ -46,10 +47,9 @@ class PolyTg82DeviceService {
       transmits: 0
     }
     this.rabbitMqInstance = {}
-    this.tcpConnector = {}
-
-    if (this.options.test) {
-      this.tcpConnector = new TcpConnectorStub(this.options.test)
+    this.tcpConnections = {
+      connections: {},
+      status: {}
     }
 
     // Start: Hard coded addresses & commands
@@ -70,6 +70,7 @@ class PolyTg82DeviceService {
     }
 
     // End: hard coded addresses & commands
+
     this.debugPublishMessage = this._debugPublishMessage.bind(this)
     this.onDataReceive = this._onDataReceive.bind(this)
   }
@@ -93,6 +94,38 @@ class PolyTg82DeviceService {
         this.onDataReceive
       )
     }
+    this.initialiseTcpConnections()
+  }
+
+  async initialiseTcpConnections() {
+    for (const [id, addr] of Object.entries(this.deviceIpMap.addresses)) {
+      if (this.options.test) {
+        this.tcpConnections.connections[id] = new TcpConnectorStub(addr, 7000)
+        this.tcpConnections.status[id] = 'Connected'
+      } else {
+        this.tcpConnections.connections[id] = new SimpleTcpConnector(addr, 7000)
+        this.tcpConnections.status[id] = 'Disconnected'
+
+        // Initialise callbacks
+        this.tcpConnections.connections[id].onConnect(() => {
+          this.tcpConnections.status[id] = 'Connected'
+          if (this.options.debug) {
+            console.log('Connected to', addr)
+          }
+        })
+        this.tcpConnections.connections[id].onDisconnect(() => {
+          this.tcpConnections.status[id] = 'Disconnected'
+          if (this.options.debug) {
+            console.log('Disconnected from', addr)
+          }
+        })
+        this.runTcpConnect(id)
+      }
+    }
+  }
+
+  async runTcpConnect(inDeviceId) {
+    this.tcpConnections.connections[inDeviceId].connect()
   }
 
   parseIds(inTargetIds, inTargetCommands) {
@@ -145,13 +178,7 @@ class PolyTg82DeviceService {
   }
 
   _onDataReceive(inEncodedMessage) {
-    if (!this.tcpConnector.connected) {
-      console.log(
-        'PolyTg82DeviceService: Tcp Connections have not been initialised!'
-      )
-      return false
-    }
-    if (typeof inEncodedMessage === 'string') {
+    if (typeof inEncodedMessage === 'string' && this.options.debug) {
       this.debugPublishMessage(inEncodedMessage)
     } else if (isUint8Array(inEncodedMessage)) {
       let decodedMessage
@@ -174,13 +201,21 @@ class PolyTg82DeviceService {
 
       for (const id of validTargetIds) {
         const address = this.deviceIpMap.addresses[id]
-        const sendCommand = validCommands[commandIndex]
-        if (sendCommand === 'Unknown' || typeof sendCommand === 'undefined') {
+        const command = validCommands[commandIndex]
+        if (command === 'Unknown' || typeof command === 'undefined') {
           if (this.options.debug) {
             console.log('Unable to send command to', address)
           }
         } else {
-          transmits += this.tcpConnector.sendCommand(sendCommand, address)
+          if (this.tcpConnections.status[id] === 'Disconnected') {
+            console.log('Attempting to re-establish connection...')
+            this.runTcpConnect(id).then(() => {
+              this.tcpConnections.connections[id].write(command)
+            })
+            return
+          }
+          this.tcpConnections.connections[id].write(command)
+          transmits += 1
         }
         commandIndex++
       }
