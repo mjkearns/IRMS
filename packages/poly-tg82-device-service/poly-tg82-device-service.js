@@ -1,5 +1,3 @@
-// require('net').createServer().listen() // Keep alive
-
 const RabbitmqStomp = require('@ats-irms/stomp-rabbitmq/rabbitmq-stomp')
 const readline = require('readline')
 
@@ -9,6 +7,13 @@ const CommandTypes = CommandsMessage.CommandType
 
 const { isUint8Array } = require('util/types')
 const TcpConnectorStub = require('./tcp-connector-stub')
+
+/*
+  This currently isn't a scalable solution, will need to remove hard coded IP map,
+  and replace with a single ID that this service listens on the Queue for;
+    (e.g. *.command.id_number, *.command.all)
+  The ID number will need to be provided by a device-service upon launching launch
+*/
 
 const runOptions = {
   debug: false,
@@ -31,7 +36,7 @@ args.forEach(function (val, index, array) {
   }
 })
 
-class CustomXmlTargetService {
+class PolyTg82DeviceService {
   constructor(options = {}) {
     this.options = {
       debug: options.debug || false,
@@ -60,8 +65,8 @@ class CustomXmlTargetService {
 
     this.deviceCommands = {
       0: { command: 'Unknown' },
-      1: { command: '<tg82><move> up </move></tg82>' },
-      2: { command: '<tg82><move> down </move></tg82>' }
+      1: { command: '<tg82><move>up</move></tg82>' },
+      2: { command: '<tg82><move>down</move></tg82>' }
     }
 
     // End: hard coded addresses & commands
@@ -70,7 +75,7 @@ class CustomXmlTargetService {
   }
 
   static async create(options = {}) {
-    const service = new CustomXmlTargetService(options)
+    const service = new PolyTg82DeviceService(options)
     await service.initialise()
     return service
   }
@@ -142,7 +147,7 @@ class CustomXmlTargetService {
   _onDataReceive(inEncodedMessage) {
     if (!this.tcpConnector.connected) {
       console.log(
-        'CustomXmlTargetService: Tcp Connections have not been initialised!'
+        'PolyTg82DeviceService: Tcp Connections have not been initialised!'
       )
       return false
     }
@@ -195,7 +200,7 @@ class CustomXmlTargetService {
 
   _debugPublishMessage(messageData) {
     if (!this.rabbitMqInstance.connected) {
-      console.log('CustomXmlTargetService not connected to RabbitMq instance!')
+      console.log('PolyTg82DeviceService not connected to RabbitMq instance!')
       return false
     }
     if (!messageData) {
@@ -253,13 +258,13 @@ class CustomXmlTargetService {
 }
 
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = CustomXmlTargetService
+  module.exports = PolyTg82DeviceService
 }
 
 // Debug functions to send messages on command line
 
 async function createService() {
-  targetService = await CustomXmlTargetService.create(runOptions)
+  targetService = await PolyTg82DeviceService.create(runOptions)
 }
 
 createService().then(() => {

@@ -1,11 +1,11 @@
-const CustomXmlTargetService = require('../custom-xml-target-service')
+const PolyTg82DeviceService = require('../poly-tg82-device-service')
 
-describe('custom-xml-target-service', () => {
+describe('poly-tg82-device-service', () => {
   const upCommandBytes = new Uint8Array([10, 2, 1, 1, 18, 2, 1, 2])
   const downCommandBytes = new Uint8Array([10, 2, 2, 2, 18, 2, 1, 2])
 
   it('exists', async () => {
-    const targetService = await CustomXmlTargetService.create({
+    const targetService = await PolyTg82DeviceService.create({
       debug: false,
       test: true
     })
@@ -18,14 +18,14 @@ describe('custom-xml-target-service', () => {
     expect(targetService.debugPublishMessage).toBeDefined()
   })
   it('creates', async () => {
-    const targetService = await CustomXmlTargetService.create({
+    const targetService = await PolyTg82DeviceService.create({
       debug: false,
       test: true
     })
     expect(targetService.rabbitMqInstance.connected).toBeDefined()
   })
   it('Parses valid message', async () => {
-    const targetService = await CustomXmlTargetService.create({
+    const targetService = await PolyTg82DeviceService.create({
       debug: false,
       test: true
     })
@@ -33,7 +33,7 @@ describe('custom-xml-target-service', () => {
     expect(targetService.data.transmits).toBe(2)
   })
   it('Rejects invalid message', async () => {
-    const targetService = await CustomXmlTargetService.create({
+    const targetService = await PolyTg82DeviceService.create({
       debug: false,
       test: true
     })
@@ -42,7 +42,7 @@ describe('custom-xml-target-service', () => {
     expect(targetService.data.transmits).toBe(0)
   })
   it('Filters single bad ID', async () => {
-    const targetService = await CustomXmlTargetService.create({
+    const targetService = await PolyTg82DeviceService.create({
       debug: false,
       test: true
     })
@@ -51,7 +51,7 @@ describe('custom-xml-target-service', () => {
     expect(targetService.data.transmits).toBe(1)
   })
   it('Filters multiple bad ID', async () => {
-    const targetService = await CustomXmlTargetService.create({
+    const targetService = await PolyTg82DeviceService.create({
       debug: false,
       test: true
     })
@@ -60,7 +60,7 @@ describe('custom-xml-target-service', () => {
     expect(targetService.data.transmits).toBe(0)
   })
   it('Filters single bad command', async () => {
-    const targetService = await CustomXmlTargetService.create({
+    const targetService = await PolyTg82DeviceService.create({
       debug: false,
       test: true
     })
@@ -69,7 +69,7 @@ describe('custom-xml-target-service', () => {
     expect(targetService.data.transmits).toBe(1)
   })
   it('Filters multiple bad command', async () => {
-    const targetService = await CustomXmlTargetService.create({
+    const targetService = await PolyTg82DeviceService.create({
       debug: false,
       test: true
     })
@@ -78,7 +78,7 @@ describe('custom-xml-target-service', () => {
     expect(targetService.data.transmits).toBe(0)
   })
   it('Sends up XML command', async () => {
-    const targetService = await CustomXmlTargetService.create({
+    const targetService = await PolyTg82DeviceService.create({
       debug: false,
       test: true
     })
@@ -86,7 +86,7 @@ describe('custom-xml-target-service', () => {
     expect(targetService.data.transmits).toBe(2)
   })
   it('Sends down XML command', async () => {
-    const targetService = await CustomXmlTargetService.create({
+    const targetService = await PolyTg82DeviceService.create({
       debug: false,
       test: true
     })
