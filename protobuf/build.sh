@@ -10,4 +10,4 @@ if [ ! -d "${CURRENT_DIR}/js" ]; then
 	mkdir -p "${CURRENT_DIR}/js"
 fi
 
-./protoc --proto_path=./include/google --proto_path=./protos --js_out=./js --cpp_out=./cpp ./protos/*.proto
+${CURRENT_DIR}/protoc --proto_path=${CURRENT_DIR}/include/google --proto_path=${CURRENT_DIR}/protos --js_out=import_style=commonjs,binary:${CURRENT_DIR}/js --cpp_out=${CURRENT_DIR}/cpp ${CURRENT_DIR}/protos/*.proto
