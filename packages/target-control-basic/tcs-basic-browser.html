@@ -2,42 +2,11 @@
   <head>
     <meta charset="UTF-8" />
     <title>Minimalist TCS</title>
-    <script src="./node_modules/@stomp/stompjs/bundles/stomp.umd.js"></script>
-    <script src="./rabbitmq-stomp.js"></script>
+    <script src="./bundle.js"></script>
   </head>
   <body>
     <h1>Demo TCS</h1>
     <button id="TargetUpButton">Set Targets Up</button>
     <button id="TargetDownButton">Set Targets Down</button>
   </body>
-  <script>
-    let instance
-    let debug = true
-    async function setup() {
-      instance = await new RabbitmqStomp('localhost:15674')
-
-      console.log('Connected = ', instance.connected)
-      if (debug) {
-        instance.subscribe('amq.topic', 'tcs.#', (message) => {
-          console.log('Received (' + typeof message + '):', message)
-        })
-      }
-    }
-
-    async function publishMessage(inTargetPosition) {
-      instance.publish('amq.topic', 'tcs.command.', inTargetPosition)
-    }
-
-    const upButton = document.getElementById('TargetUpButton')
-    upButton.addEventListener('click', function (e) {
-      publishMessage('targetsUp')
-    })
-
-    const downButton = document.getElementById('TargetDownButton')
-    downButton.addEventListener('click', function (e) {
-      publishMessage('targetsDown')
-    })
-
-    let conn = setup()
-  </script>
 </html>

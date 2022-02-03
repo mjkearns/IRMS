@@ -2,13 +2,17 @@
   "name": "@ats-irms/target-control-basic",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "client.js",
   "scripts": {
+    "build": "./build.sh",
+    "launch": "./build.sh && chromium-browser tcs-basic-browser.html",
     "test": "./__test__/unit-test.sh"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@stomp/stompjs": "^6.1.2"
+    "@stomp/stompjs": "^6.1.2",
+    "browserify": "^17.0.0",
+    "google-protobuf": "^3.19.4"
   }
 }
