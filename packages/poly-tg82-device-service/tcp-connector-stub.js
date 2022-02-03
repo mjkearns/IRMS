@@ -1,19 +1,18 @@
 class TcpConnectorStub {
-  constructor(test) {
-    this.test = test || false
+  constructor(address, port) {
+    this.address = address
+    this.port = port
     this.connected = true
-    this.sendCommand = this._sendCommand.bind(this)
+    this.write = this._write.bind(this)
   }
 
-  _sendCommand(command, address) {
-    if (this.test) {
-      console.log(
-        'TcpConnectorStub would send message',
-        command,
-        'to address',
-        address
-      )
-    }
+  _write(command, address) {
+    console.log(
+      'TcpConnectorStub would send message',
+      command,
+      'to address',
+      this.address
+    )
     return 1
   }
 }
