@@ -2,7 +2,7 @@
   "name": "@ats-irms/poly-tg82-device-service",
   "version": "1.0.0",
   "description": "",
-  "main": "custom-xml-target-service.js",
+  "main": "poly-tg82-device-service.js",
   "scripts": {
     "test": "./__tests__/unit-test.sh"
   },
@@ -10,7 +10,8 @@
   "license": "ISC",
   "dependencies": {
     "@ats-irms/stomp-rabbitmq": "file:../stomp-rabbitmq",
-    "google-protobuf": "^3.19.4"
+    "google-protobuf": "^3.19.4",
+    "simple-tcp-connector": "file:../simple-tcp-connector"
   },
   "devDependencies": {
     "@types/node": "^17.0.13",

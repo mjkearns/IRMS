@@ -74,4 +74,6 @@ class SimpleTcpConnector {
   }
 }
 
-module.exports = SimpleTcpConnector
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = SimpleTcpConnector
+}
