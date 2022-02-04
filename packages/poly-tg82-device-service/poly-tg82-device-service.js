@@ -111,6 +111,9 @@ class PolyTg82DeviceService {
           this.tcpConnections.status[id] = 'Connected'
           if (this.options.debug) {
             console.log('Connected to', addr)
+            this.tcpConnections.connections[id].write(
+              '<tg82><get><version> </version></get></tg82>'
+            )
           }
         })
         this.tcpConnections.connections[id].onDisconnect(() => {
@@ -118,6 +121,9 @@ class PolyTg82DeviceService {
           if (this.options.debug) {
             console.log('Disconnected from', addr)
           }
+        })
+        this.tcpConnections.connections[id].onData((data) => {
+          console.log(data)
         })
         this.runTcpConnect(id)
       }
