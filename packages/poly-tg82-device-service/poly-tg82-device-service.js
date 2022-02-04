@@ -1,4 +1,4 @@
-const RabbitmqStomp = require('@ats-irms/stomp-rabbitmq/rabbitmq-stomp')
+const RabbitmqStomp = require('../stomp-rabbitmq/rabbitmq-stomp')
 const readline = require('readline')
 
 const CommandsProtobuf = require('./proto/commands_pb')
@@ -7,7 +7,7 @@ const CommandTypes = CommandsMessage.CommandType
 
 const { isUint8Array } = require('util/types')
 const TcpConnectorStub = require('./tcp-connector-stub')
-const SimpleTcpConnector = require('simple-tcp-connector')
+const SimpleTcpConnector = require('../simple-tcp-connector/simple-tcp-connector')
 
 /*
   This currently isn't a scalable solution, will need to remove hard coded IP map,
