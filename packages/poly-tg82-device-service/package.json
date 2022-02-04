@@ -1,10 +1,10 @@
 {
   "name": "@ats-irms/poly-tg82-device-service",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "",
   "main": "poly-tg82-device-service.js",
   "scripts": {
-    "test": "./__tests__/unit-test.sh"
+    "test": "./tests/unit-test.sh"
   },
   "author": "",
   "license": "ISC",
