@@ -49,7 +49,9 @@ class PolyTg82DeviceService {
     this.rabbitMqInstance = {}
     this.tcpConnections = {
       connections: {},
-      status: {}
+      status: {},
+      lastRecvMessage: {},
+      lastSendMessage: {}
     }
 
     // Start: Hard coded addresses & commands
@@ -68,6 +70,8 @@ class PolyTg82DeviceService {
       1: { command: '<tg82><move>up</move></tg82>' },
       2: { command: '<tg82><move>down</move></tg82>' }
     }
+
+    this.getVersionCommand = '<tg82><get><version> </version></get></tg82>'
 
     // End: hard coded addresses & commands
 
@@ -110,28 +114,43 @@ class PolyTg82DeviceService {
         this.tcpConnections.connections[id].onConnect(() => {
           this.tcpConnections.status[id] = 'Connected'
           if (this.options.debug) {
-            console.log('Connected to', addr)
-            this.tcpConnections.connections[id].write(
-              '<tg82><get><version> </version></get></tg82>'
-            )
+            console.log('Connected to TG82 at', addr)
           }
         })
         this.tcpConnections.connections[id].onDisconnect(() => {
           this.tcpConnections.status[id] = 'Disconnected'
           if (this.options.debug) {
-            console.log('Disconnected from', addr)
+            console.log('Disconnected from TG82 at', addr)
           }
         })
-        this.tcpConnections.connections[id].onData((data) => {
-          console.log(data)
-        })
+
         this.runTcpConnect(id)
       }
+      this.tcpConnections.connections[id].onData((data) => {
+        this.handleTcpDataReceive(data, id)
+      })
+
+      this.handleSendCommand(this.getVersionCommand, id)
     }
   }
 
   async runTcpConnect(inDeviceId) {
     this.tcpConnections.connections[inDeviceId].connect()
+  }
+
+  handleTcpDataReceive(data, id) {
+    // Only TCP data that should be received is TG82 XML, which is not currently getting parsed
+    this.tcpConnections.lastRecvMessage[id] = data
+    if (this.options.debug) {
+      console.log('Received data from', this.deviceIpMap.addresses[id])
+      console.log(this.tcpConnections.lastRecvMessage[id])
+    }
+  }
+
+  handleSendCommand(command, id) {
+    this.tcpConnections.connections[id].write(command)
+    this.tcpConnections.lastSendMessage[id] = command
+    this.data.transmits += 1
   }
 
   parseIds(inTargetIds, inTargetCommands) {
@@ -203,7 +222,7 @@ class PolyTg82DeviceService {
       const validTargetIds = this.parseIds(targetIds, targetCommands)
       const validCommands = this.parseCommands(targetCommands)
       let commandIndex = 0
-      let transmits = 0
+      let successfulTransmits = 0
 
       for (const id of validTargetIds) {
         const address = this.deviceIpMap.addresses[id]
@@ -216,17 +235,17 @@ class PolyTg82DeviceService {
           if (this.tcpConnections.status[id] === 'Disconnected') {
             console.log('Attempting to re-establish connection...')
             this.runTcpConnect(id).then(() => {
-              this.tcpConnections.connections[id].write(command)
+              this.handleSendCommand(command, id)
+              successfulTransmits += 1
             })
-            return
+          } else {
+            this.handleSendCommand(command, id)
+            successfulTransmits += 1
           }
-          this.tcpConnections.connections[id].write(command)
-          transmits += 1
         }
         commandIndex++
       }
-      this.data.transmits += transmits
-      return this.data.transmits !== 0
+      return successfulTransmits === validCommands.length
     } else {
       if (this.options.debug) {
         console.log('Warning: encoded data is not a byte array!')
