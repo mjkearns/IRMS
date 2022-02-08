@@ -39,8 +39,12 @@ module.exports = ({ production }, { analyze, hmr, port, host }) => ({
       // https://github.com/aurelia/binding/issues/702
       // Enforce single aurelia-binding, to avoid v1/v2 duplication due to
       // out-of-date dependencies on 3rd party aurelia plugins
-      'aurelia-binding': path.resolve(__dirname, 'node_modules/aurelia-binding')
-    }
+      'aurelia-binding': path.resolve(__dirname, 'node_modules/aurelia-binding'),
+      leaflet_css: __dirname + "/node_modules/leaflet/dist/leaflet.css",
+      leaflet_marker: __dirname + "/node_modules/leaflet/dist/images/marker-icon.png",
+      leaflet_marker_2x: __dirname + "/node_modules/leaflet/dist/images/marker-icon-2x.png",
+      leaflet_marker_shadow: __dirname + "/node_modules/leaflet/dist/images/marker-shadow.png"
+  }
   },
   entry: {
     app: [
@@ -219,7 +223,7 @@ module.exports = ({ production }, { analyze, hmr, port, host }) => ({
       { test: /environment\.json$/i, use: [
         {loader: "app-settings-loader", options: {env: production ? 'production' : 'development' }},
       ]}
-    ]
+    ],
   },
   plugins: [
     new DuplicatePackageCheckerPlugin(),
@@ -241,7 +245,9 @@ module.exports = ({ production }, { analyze, hmr, port, host }) => ({
     }),
     new CopyWebpackPlugin({
       patterns: [
-        { from: 'static', to: outDir, globOptions: { ignore: ['.*'] } }
+        { from: 'static', to: outDir, globOptions: { ignore: ['.*'] } },
+        { from: 'maps', to: outDir, globOptions: { ignore: ['.*'] } },
+        { from: 'css', to: outDir, globOptions: { ignore: ['.*'] } }
       ]
     }), // ignore dot (hidden) files
     ...when(analyze, new BundleAnalyzerPlugin()),

@@ -1,3 +1,5 @@
 <template>
-  <h1>${message}</h1>
+  <require from="./components/map-view/map-view"></require>
+  <!-- <map-view latitude.bind="51.505" longitude.bind="-0.09" zoom-level.bind="13"></map-view> -->
+  <map-view latitude.bind="500" longitude.bind="500" zoom-level.bind="1" allow-zoom.bind="false" allow-rotate.bind="false" allow-pan.bind="false"></map-view>
 </template>
